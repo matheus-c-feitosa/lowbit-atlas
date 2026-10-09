@@ -1,0 +1,10 @@
+# downloaded or built by the scripts; never committed
+models/
+data/
+engines/
+build*/
+*.gguf
+*.kld
+*.log
+__pycache__/
+.venv/
