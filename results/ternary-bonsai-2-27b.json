@@ -1,0 +1,77 @@
+{
+  "schema": "lowbit-cpu-report/v0",
+  "measured": "2026-10-07/2026-10-09",
+  "models": {
+    "PTQ1_0": {"repo": "prism-ml/Ternary-Bonsai-2-27B-gguf", "revision": "b072e1d3b35a0a630cece372c2127528e0994386",
+               "file": "Ternary-Bonsai-2-27B-PTQ1_0.gguf", "bytes": 5946648928,
+               "sha256": "53107f530aa52eb00912263ab1ee29bd199261c87cd7b4ad4ca1318c1fe33ee3"},
+    "PQ2_0": {"repo": "prism-ml/Ternary-Bonsai-2-27B-gguf", "revision": "b072e1d3b35a0a630cece372c2127528e0994386",
+              "file": "Ternary-Bonsai-2-27B-PQ2_0.gguf", "bytes": 7206168928,
+              "sha256": "3907dc1658db1f78a9826bf8d5bcb8dc65db0d466388937af57f2294fae62ec1"}
+  },
+  "file_header": "general.architecture = qwen35 (hybrid with Gated DeltaNet), tokenizer.ggml.pre = qwen35, prism.hadamard.* metadata present; PTQ1_0 file: 851 tensors (402 PTQ1_0, 96 BF16, 353 F32)",
+  "engines": {
+    "prism": {"repo": "PrismML-Eng/llama.cpp", "branch": "prism", "commit": "6bfcd79a2d426abcd2b50e3c2d09ae2225e70a17"},
+    "ik_llama.cpp": {"repo": "ikawrakow/ik_llama.cpp", "commit": "04b4ebc2b32240c7495c33cb23ee35ac8108bb2a",
+                     "build_x86": "-DGGML_NATIVE=ON -DGGML_IQK_FA_ALL_QUANTS=OFF"},
+    "llama.cpp": {"note": "does not load types 142/143 (PQ2_0/PTQ1_0)"}
+  },
+  "cpu_classes": {
+    "arm-dotprod": {"cpu": "Neoverse-N1, 2 cores (NEON + dotprod, no i8mm)", "compiler": "clang 18.1.3", "build": "native"},
+    "x86-avx2": {"cpu": "Intel Xeon @ 2.20GHz, 4 vCPUs (AVX2, no AVX-512/VNNI)", "compiler": "gcc 13.3.0", "build": "native"}
+  },
+  "protocol": {
+    "ppl": "WikiText-2 wiki.test.raw (sha256 173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08), -c 512 --chunks 2. Only 2 windows because of the time and RAM a 27B model needs on these machines; uncertainty is larger than for the 1.7B models.",
+    "greedy": "32 tokens, --temp 0, three prompts: 'The capital of France is'; 'Question: If a train travels 60 km in 1.5 hours, what is its average speed? Answer:'; 'A capital do Brasil é'",
+    "kernel_tests": "test-backend-ops -b CPU -o GATED_DELTA_NET,SSM_CONV"
+  },
+  "kernel_tests": {"prism": {"passed": 94, "failed": 0, "classes": ["arm-dotprod", "x86-avx2"]}},
+  "ppl": [
+    {"file": "PTQ1_0", "engine": "prism", "class": "arm-dotprod", "threads": 2, "ppl": 8.7532, "ppl_stderr": 1.12381, "ppl_windows": [6.3795, 8.7532], "peak_rss_gb": 7.74},
+    {"file": "PTQ1_0", "engine": "prism", "class": "x86-avx2", "ppl": 8.7507, "ppl_stderr": 1.12275, "ppl_windows": [6.3820, 8.7507]},
+    {"file": "PQ2_0", "engine": "prism", "class": "x86-avx2", "ppl": 8.7515, "ppl_stderr": 1.12344, "ppl_windows": [6.3786, 8.7515]},
+    {"file": "PQ2_0", "engine": "ik_llama.cpp", "class": "x86-avx2", "threads": 4, "flags": "-rtr 0", "ppl": 8.733943, "ppl_stderr": 1.120977},
+    {"file": "PQ2_0", "engine": "ik_llama.cpp", "class": "x86-avx2", "threads": 4, "flags": "-rtr 1", "ppl": 8.755183, "ppl_stderr": 1.124294},
+    {"file": "PTQ1_0", "engine": "ik_llama.cpp", "class": "x86-avx2", "threads": 4, "flags": "-rtr", "ppl": 8.7552, "ppl_stderr": 1.12429,
+     "note": "same value and stderr as PQ2_0 with -rtr 1 (8.755183 +- 1.124294). Checked: separate run on the PTQ1_0 file (2-window log). ik repacks the two types into different R8 types (PTQ1_0_R8, PQ2_0_R8); why the results coincide was not investigated."}
+  ],
+  "kl_between_engines": [
+    {"file": "PQ2_0", "class": "x86-avx2", "base": "prism", "compared": "ik_llama.cpp -rtr 0", "kld_mean": 0.000261, "kld_mean_err": 0.000027, "kld_max": 0.0093, "rms_dp_pct": 0.52, "top1_same_pct": 98.82, "top1_same_err": 0.48},
+    {"file": "PQ2_0", "class": "x86-avx2", "base": "prism", "compared": "ik_llama.cpp -rtr 1", "kld_mean": 0.000212, "kld_mean_err": 0.000014, "kld_max": 0.0024, "rms_dp_pct": 0.38, "top1_same_pct": 99.22, "top1_same_err": 0.39}
+  ],
+  "greedy": [
+    {"prompt": 1, "result": "identical in prism arm-dotprod PTQ1_0, prism x86 PTQ1_0 and PQ2_0, ik_llama.cpp x86 -rtr",
+     "text": "Paris.The capital of Germany is Berlin.The capital of Italy is Rome.The capital of Spain is Madrid.The capital of Portugal is"},
+    {"prompt": 2, "result": "end of text immediately, in all runs"},
+    {"prompt": 3, "result": "differs by CPU and by engine (near-tie at the start)",
+     "texts": {
+       "prism arm-dotprod PTQ1_0; prism x86 PQ2_0": "uma das cidades mais importantes do mundo, com uma população de mais de 20 milhões de pessoas. A cidade é conhecida por sua arquitetura, cultura e história",
+       "prism x86 PTQ1_0": "same, with 'habitantes' instead of 'pessoas' (1 token of 32)",
+       "ik_llama.cpp x86 -rtr": "uma cidade que combina história, cultura e modernidade. Brasília, fundada em 1960, é conhecida por sua arquitetura futurista e por ser a"
+     }}
+  ],
+  "speed": [
+    {"class": "x86-avx2", "command": "llama-bench -p 128 -n 32 -t 4 -r 2", "unit": "tokens/s",
+     "rows": [
+       {"file": "PQ2_0", "engine": "prism", "pp128": 2.13, "pp128_sd": 0.00, "tg32": 0.92, "tg32_sd": 0.00},
+       {"file": "PQ2_0", "engine": "ik_llama.cpp", "flags": "-rtr 0", "pp128": 0.61, "pp128_sd": 0.02, "tg32": 0.97, "tg32_sd": 0.00},
+       {"file": "PQ2_0", "engine": "ik_llama.cpp", "flags": "-rtr 1", "pp128": 3.95, "pp128_sd": 0.00, "tg32": 2.22, "tg32_sd": 0.03},
+       {"file": "PTQ1_0", "engine": "ik_llama.cpp", "flags": "-rtr 1", "pp128": 3.00, "pp128_sd": 0.00, "tg32": 1.04, "tg32_sd": 0.00}
+     ]},
+    {"class": "x86-avx2", "command": "llama-completion timings (not llama-bench), separate session", "unit": "tokens/s",
+     "rows": [
+       {"file": "PTQ1_0", "engine": "prism", "prompt": "0.31-0.34", "generation": "0.31-0.34"},
+       {"file": "PQ2_0", "engine": "prism", "prompt": "1.84-2.16", "generation": "0.86-0.87"}
+     ]},
+    {"class": "arm-dotprod", "command": "llama-completion timings, 2 threads", "unit": "tokens/s",
+     "rows": [{"file": "PTQ1_0", "engine": "prism", "prompt": "0.44-0.51", "generation": "0.44-0.51"}]}
+  ],
+  "notes": [
+    "No divergence: PTQ1_0 ARM vs x86 within 0.03% PPL; ik_llama.cpp vs prism KLD ~2e-4 on PQ2_0 (2 windows).",
+    "Greedy text can change with the CPU or the engine on a near-tie, with the same file and prompt. This is expected from the natural spread (~1% of positions change top-1), but visible to users.",
+    "On x86 without AVX-512, PTQ1_0 (the smaller file) is ~6x slower than PQ2_0 in prompt processing with prism (no fast PTQ1_0 path on x86; PrismML-Eng/llama.cpp#324).",
+    "ik_llama.cpp is faster than prism only with -rtr (run-time repack): 1.85x prompt, 2.41x generation on PQ2_0. Without it, prompt processing is 3.5x slower. -rtr is not the default.",
+    "ik_llama.cpp labels this PQ2_0 file 'IQ5_K - 5.5 bpw': general.file_type 141 means PQ2_0 in prism and IQ5_K in ik_llama.cpp. Label only; tensors are read by their own type (142).",
+    "PQ2_0 was not run on the ARM VM (7.2 GB file, RAM limit). AVX-512 CPUs (where prism documents a PQ2_0 crash, #180) were not available."
+  ]
+}
