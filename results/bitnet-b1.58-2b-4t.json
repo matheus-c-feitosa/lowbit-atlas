@@ -1,86 +1,317 @@
 {
-  "schema": "lowbit-atlas/v0",
-  "measured": "2026-10-06/2026-10-09",
-  "model": {
-    "name": "BitNet-b1.58-2B-4T",
-    "gguf": {"repo": "microsoft/bitnet-b1.58-2B-4T-gguf", "revision": "a1f2f1c765812aa8af3f6eda4a313707064bba15",
-             "file": "ggml-model-i2_s.gguf", "bytes": 1187801280,
-             "sha256": "4221b252fdd5fd25e15847adfeb5ee88886506ba50b8a34548374492884c2162", "license": "MIT (cardData)"},
-    "reference": {"repo": "microsoft/bitnet-b1.58-2B-4T", "revision": "04c3b9ad9361b824064a1f25ea60a8be9599b127",
-                  "implementation": "transformers 5.16.1 BitNetForCausalLM", "dtype": "float32", "device": "NVIDIA T4"}
+ "schema": "lowbit-atlas/v0",
+ "measured": "2026-10-06/2026-10-09",
+ "model": {
+  "name": "BitNet-b1.58-2B-4T",
+  "gguf": {
+   "repo": "microsoft/bitnet-b1.58-2B-4T-gguf",
+   "revision": "a1f2f1c765812aa8af3f6eda4a313707064bba15",
+   "file": "ggml-model-i2_s.gguf",
+   "bytes": 1187801280,
+   "sha256": "4221b252fdd5fd25e15847adfeb5ee88886506ba50b8a34548374492884c2162",
+   "license": "MIT (cardData)"
   },
-  "protocol": {
-    "ppl": "WikiText-2 wiki.test.raw (sha256 173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08), n_ctx 512, 8 windows, BOS at position 0 of each window, NLL over the second half of each window (llama-perplexity protocol), threads 2",
-    "greedy_prompt": "The capital of France is",
-    "greedy_prompt_token_ids": [128000, 791, 6864, 315, 9822, 374],
-    "greedy_new_tokens": 12,
-    "token_ids_used_for_ppl": {"count": 4096, "source": "llama-tokenize on the whole wiki.test.raw (325587 tokens), identical between bitnet.cpp and ik_llama.cpp",
-                               "sha256_uint32_le": "a04e9858c1e843bc6f1512f1f307c533258ec625544e0ca3665ce91ce164a0dd"}
-  },
-  "runs": [
-    {"id": "reference-transformers", "engine": "transformers (reference)", "cpu": null, "path": "same 4096 token IDs as the GGUF runtimes",
-     "ppl": 18.7934, "ppl_windows": [14.4109, 21.9832, 19.8573, 21.9368, 19.7690, 18.6676, 18.6832, 18.7934],
-     "greedy": " Paris. Paris is a city in the Île-de-F"},
-    {"id": "ik-arm", "engine": "ik_llama.cpp", "engine_repo": "ikawrakow/ik_llama.cpp", "commit": "04b4ebc2b32240c7495c33cb23ee35ac8108bb2a",
-     "file_conversion": "llama-quantize --allow-requantize ggml-model-i2_s.gguf -> iq2_bn_r4 (803195520 bytes), as documented in ik_llama.cpp#387",
-     "cpu": {"class": "aarch64 NEON+dotprod", "model": "Neoverse-N1", "cores": 2}, "compiler": "clang 18.1.3",
-     "build": "-DGGML_NATIVE=OFF -DCMAKE_C_FLAGS=-mcpu=native -DCMAKE_CXX_FLAGS=-mcpu=native",
-     "ppl": 18.8127, "ppl_stderr": 1.30296, "ppl_windows": [14.2446, 21.8109, 19.7668, 21.8767, 19.6838, 18.6085, 18.6467, 18.8127],
-     "greedy": " Paris. Paris is a city that is known for its rich"},
-    {"id": "ik-x86", "engine": "ik_llama.cpp", "commit": "04b4ebc2b32240c7495c33cb23ee35ac8108bb2a", "file_conversion": "iq2_bn_r4",
-     "cpu": {"class": "x86_64 AVX2 (no AVX-512/VNNI)", "model": "Intel Xeon @ 2.20GHz", "vcpus": 4}, "compiler": "gcc 13.3.0", "build": "-DGGML_NATIVE=ON -DGGML_IQK_FA_ALL_QUANTS=OFF",
-     "ppl": 18.8519, "ppl_stderr": 1.30688, "greedy": " Paris. Paris is a city that is known for its rich"},
-    {"id": "bitnetcpp-arm-2025-06", "engine": "bitnet.cpp (June 2025)", "engine_repo": "microsoft/BitNet", "commit": "404980eecae38affa4871c3e419eae3f44536a95",
-     "submodule": "Eddie-Wang1120/llama.cpp@40ed0f290203a9a78540b8f7eb18bd828043fe21",
-     "cpu": {"class": "aarch64 NEON+dotprod", "model": "Neoverse-N1", "cores": 2}, "compiler": "clang 18.1.3",
-     "build": "as setup_env.py at that commit: utils/codegen_tl1.py --model bitnet_b1_58-3B --BM 160,320,320 --BK 64,128,64 --bm 32,64,32; -DBITNET_ARM_TL1=ON; no patches",
-     "ppl": 18.8515, "ppl_stderr": 1.30575, "ppl_windows": [14.2660, 21.8564, 19.7821, 21.8715, 19.7656, 18.7084, 18.7179, 18.8515],
-     "greedy": " Paris. Paris is a city that is known for its rich",
-     "tokens_check": "llama-tokenize of this build and of the current build give the same 325587 tokens on wiki.test.raw; first 4096 sha256 a04e9858..."},
-    {"id": "bitnetcpp-arm-2025-06-tl1off", "engine": "bitnet.cpp (June 2025)", "commit": "404980eecae38affa4871c3e419eae3f44536a95",
-     "submodule": "Eddie-Wang1120/llama.cpp@40ed0f290203a9a78540b8f7eb18bd828043fe21",
-     "cpu": {"class": "aarch64 NEON+dotprod", "model": "Neoverse-N1", "cores": 2}, "compiler": "clang 18.1.3",
-     "build": "same as above with -DBITNET_ARM_TL1=OFF (today's default)", "ppl": 18.8515, "ppl_stderr": 1.30575,
-     "greedy": " Paris. Paris is a city that is known for its rich", "note": "identical to TL1=ON: the flag does not affect I2_S"},
-    {"id": "bitnetcpp-arm-2025-11", "engine": "bitnet.cpp (November 2025)", "commit": "112f853414a3d36932c2789f15a44eebd834c78b",
-     "submodule": "Eddie-Wang1120/llama.cpp@0f0e7daec25c467800af808b55ce28a69461f904",
-     "cpu": {"class": "aarch64 NEON+dotprod", "model": "Neoverse-N1", "cores": 2}, "compiler": "clang 18.1.3",
-     "build": "as setup_env.py at that commit (-DBITNET_ARM_TL1=ON, same codegen); no patches",
-     "ppl": 40118134.2038, "greedy": "!!!!!!!!!!!!",
-     "note": "first bad commit on aarch64: its only parent is 404980e (good). It rewrites src/ggml-bitnet-mad.cpp (I2_S kernels) and moves the submodule."},
-    {"id": "bitnetcpp-x86-official", "engine": "bitnet.cpp", "engine_repo": "microsoft/BitNet", "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
-     "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
-     "cpu": {"class": "x86_64 AVX2 (no AVX-512/VNNI)", "model": "Intel Xeon @ 2.20GHz", "vcpus": 4}, "compiler": "gcc 13.3.0",
-     "build": "utils/codegen_tl2.py --model bitnet_b1_58-3B --BM 160,320,320 --BK 96,96,96 --bm 32,32,32; -DBITNET_X86_TL2=OFF",
-     "ppl": 113.3283, "ppl_stderr": 9.51283, "greedy": " a small city, and the capital of France is a small"},
-    {"id": "bitnetcpp-x86-pr2", "engine": "bitnet.cpp + isHuangXin/llama.cpp#2", "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
-     "submodule": "8000be462617183252792344b869297945f49aab",
-     "cpu": {"class": "x86_64 AVX2", "model": "Intel Xeon @ 2.20GHz", "vcpus": 4}, "compiler": "gcc 13.3.0",
-     "ppl": 113.3283, "ppl_stderr": 9.51283, "greedy": " a small city, and the capital of France is a small"},
-    {"id": "bitnetcpp-arm-official", "engine": "bitnet.cpp", "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
-     "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
-     "cpu": {"class": "aarch64 NEON+dotprod", "model": "Neoverse-N1", "cores": 2}, "compiler": "clang 18.1.3",
-     "build": "utils/codegen_tl1.py --model bitnet_b1_58-3B --BM 160,320,320 --BK 64,128,64 --bm 32,64,32; -DBITNET_ARM_TL1=OFF",
-     "ppl": null, "greedy": "????????????", "note": "garbage output, no error (microsoft/BitNet#598); ~0.8 tok/s"},
-    {"id": "bitnetcpp-armv8-official", "engine": "bitnet.cpp", "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
-     "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
-     "cpu": {"class": "aarch64 ARMv8.0 (build -march=armv8-a, scalar fallback)", "model": "Neoverse-N1 (emulated class)", "cores": 2}, "compiler": "clang 18.1.3",
-     "ppl": null, "greedy": "????????????", "note": "garbage output, no error (matches microsoft/BitNet#411)"},
-    {"id": "bitnetcpp-arm-pr2", "engine": "bitnet.cpp + isHuangXin/llama.cpp#2", "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
-     "submodule": "8000be462617183252792344b869297945f49aab",
-     "cpu": {"class": "aarch64 NEON+dotprod", "model": "Neoverse-N1", "cores": 2}, "compiler": "clang 18.1.3",
-     "ppl": 113.2588, "ppl_windows": [46.8686, 89.8419, 91.8506, 108.1625, 102.3266, 104.5230, 109.8576, 113.2588],
-     "greedy": " a small city, and the capital of France is a small",
-     "checks": {"ub1_first2_windows": [46.7968, 89.3551], "t1_first2_windows": [46.8686, 89.8419]}},
-    {"id": "bitnetcpp-armv8-pr2", "engine": "bitnet.cpp + isHuangXin/llama.cpp#2", "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
-     "submodule": "8000be462617183252792344b869297945f49aab",
-     "cpu": {"class": "aarch64 ARMv8.0 (build -march=armv8-a, scalar fallback)", "model": "Neoverse-N1 (emulated class)", "cores": 2}, "compiler": "clang 18.1.3",
-     "ppl": 113.2736, "ppl_windows": [46.9068, 89.8430, 91.8807, 108.2208, 102.3726, 104.5721, 109.8729, 113.2736],
-     "greedy": " a small city, and the capital of France is a small"}
+  "reference": {
+   "repo": "microsoft/bitnet-b1.58-2B-4T",
+   "revision": "04c3b9ad9361b824064a1f25ea60a8be9599b127",
+   "implementation": "transformers 5.16.1 BitNetForCausalLM",
+   "dtype": "float32",
+   "device": "NVIDIA T4"
+  }
+ },
+ "protocol": {
+  "ppl": "WikiText-2 wiki.test.raw (sha256 173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08), n_ctx 512, 8 windows, BOS at position 0 of each window, NLL over the second half of each window (llama-perplexity protocol), threads 2",
+  "greedy_prompt": "The capital of France is",
+  "greedy_prompt_token_ids": [
+   128000,
+   791,
+   6864,
+   315,
+   9822,
+   374
   ],
-  "notes": [
-    "bitnet.cpp at current main gives ~6x the reference perplexity on the same tokens on x86_64 and aarch64; ik_llama.cpp matches the reference within 0.1-0.3% (reported as microsoft/BitNet#639).",
-    "bitnet.cpp from June 2025 (404980e), same machine, compiler, file and tokens, matches the reference (+0.31%): the error is a regression introduced between 404980e (2025-06-03) and 0b341e5 (2026-07-27). On aarch64 the first bad commit is 112f853 (2025-11-19). Where the ~6x error seen on x86_64 starts was not bisected (on aarch64 the garbage output hides it).",
-    "The GGUF has no tokenizer.ggml.pre; GGUF runtimes tokenize WikiText into ~16% more tokens than the HF tokenizer (1631 vs 1407 on the first 6000 bytes). The HF tokenizer gives PPL 15.3107 on its own tokens, which is not comparable to the rows above."
-  ]
+  "greedy_new_tokens": 12,
+  "token_ids_used_for_ppl": {
+   "count": 4096,
+   "source": "llama-tokenize on the whole wiki.test.raw (325587 tokens), identical between bitnet.cpp and ik_llama.cpp",
+   "sha256_uint32_le": "a04e9858c1e843bc6f1512f1f307c533258ec625544e0ca3665ce91ce164a0dd"
+  }
+ },
+ "runs": [
+  {
+   "id": "reference-transformers",
+   "engine": "transformers (reference)",
+   "cpu": null,
+   "path": "same 4096 token IDs as the GGUF runtimes",
+   "ppl": 18.7934,
+   "ppl_windows": [
+    14.4109,
+    21.9832,
+    19.8573,
+    21.9368,
+    19.769,
+    18.6676,
+    18.6832,
+    18.7934
+   ],
+   "greedy": " Paris. Paris is a city in the Île-de-F"
+  },
+  {
+   "id": "ik-arm",
+   "engine": "ik_llama.cpp",
+   "engine_repo": "ikawrakow/ik_llama.cpp",
+   "commit": "04b4ebc2b32240c7495c33cb23ee35ac8108bb2a",
+   "file_conversion": "llama-quantize --allow-requantize ggml-model-i2_s.gguf -> iq2_bn_r4 (803195520 bytes), as documented in ik_llama.cpp#387",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "-DGGML_NATIVE=OFF -DCMAKE_C_FLAGS=-mcpu=native -DCMAKE_CXX_FLAGS=-mcpu=native",
+   "ppl": 18.8127,
+   "ppl_stderr": 1.30296,
+   "ppl_windows": [
+    14.2446,
+    21.8109,
+    19.7668,
+    21.8767,
+    19.6838,
+    18.6085,
+    18.6467,
+    18.8127
+   ],
+   "greedy": " Paris. Paris is a city that is known for its rich"
+  },
+  {
+   "id": "ik-x86",
+   "engine": "ik_llama.cpp",
+   "commit": "04b4ebc2b32240c7495c33cb23ee35ac8108bb2a",
+   "file_conversion": "iq2_bn_r4",
+   "cpu": {
+    "class": "x86_64 AVX2 (no AVX-512/VNNI)",
+    "model": "Intel Xeon @ 2.20GHz",
+    "vcpus": 4
+   },
+   "compiler": "gcc 13.3.0",
+   "build": "-DGGML_NATIVE=ON -DGGML_IQK_FA_ALL_QUANTS=OFF",
+   "ppl": 18.8519,
+   "ppl_stderr": 1.30688,
+   "greedy": " Paris. Paris is a city that is known for its rich"
+  },
+  {
+   "id": "bitnetcpp-arm-2025-06",
+   "engine": "bitnet.cpp (June 2025)",
+   "engine_repo": "microsoft/BitNet",
+   "commit": "404980eecae38affa4871c3e419eae3f44536a95",
+   "submodule": "Eddie-Wang1120/llama.cpp@40ed0f290203a9a78540b8f7eb18bd828043fe21",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "as setup_env.py at that commit: utils/codegen_tl1.py --model bitnet_b1_58-3B --BM 160,320,320 --BK 64,128,64 --bm 32,64,32; -DBITNET_ARM_TL1=ON; no patches",
+   "ppl": 18.8515,
+   "ppl_stderr": 1.30575,
+   "ppl_windows": [
+    14.266,
+    21.8564,
+    19.7821,
+    21.8715,
+    19.7656,
+    18.7084,
+    18.7179,
+    18.8515
+   ],
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "tokens_check": "llama-tokenize of this build and of the current build give the same 325587 tokens on wiki.test.raw; first 4096 sha256 a04e9858..."
+  },
+  {
+   "id": "bitnetcpp-arm-2025-06-tl1off",
+   "engine": "bitnet.cpp (June 2025)",
+   "commit": "404980eecae38affa4871c3e419eae3f44536a95",
+   "submodule": "Eddie-Wang1120/llama.cpp@40ed0f290203a9a78540b8f7eb18bd828043fe21",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "same as above with -DBITNET_ARM_TL1=OFF (today's default)",
+   "ppl": 18.8515,
+   "ppl_stderr": 1.30575,
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "note": "identical to TL1=ON: the flag does not affect I2_S"
+  },
+  {
+   "id": "bitnetcpp-arm-2025-11",
+   "engine": "bitnet.cpp (November 2025)",
+   "commit": "112f853414a3d36932c2789f15a44eebd834c78b",
+   "submodule": "Eddie-Wang1120/llama.cpp@0f0e7daec25c467800af808b55ce28a69461f904",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "as setup_env.py at that commit (-DBITNET_ARM_TL1=ON, same codegen); no patches",
+   "ppl": 40118134.2038,
+   "greedy": "!!!!!!!!!!!!",
+   "note": "first bad commit on aarch64, as already bisected in microsoft/BitNet#470: its only parent is 404980e (good). It rewrites src/ggml-bitnet-mad.cpp (I2_S kernels) and moves the submodule."
+  },
+  {
+   "id": "bitnetcpp-arm-pr2-relu2",
+   "engine": "bitnet.cpp + isHuangXin/llama.cpp#2 + one-line fix from microsoft/BitNet#588",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "8000be462617183252792344b869297945f49aab",
+   "patch": "src/models/bitnet.cpp:133 LLM_FFN_SILU -> LLM_FFN_RELU_SQR",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "codegen_tl1 as setup_env.py; -DBITNET_ARM_TL1=OFF",
+   "ppl": 18.8444,
+   "ppl_stderr": 1.30426,
+   "ppl_windows": [
+    14.4323,
+    21.8927,
+    19.8875,
+    21.94,
+    19.7718,
+    18.6801,
+    18.7215,
+    18.8444
+   ],
+   "greedy": " Paris. Paris is a city that is known for its rich"
+  },
+  {
+   "id": "bitnetcpp-x86-official",
+   "engine": "bitnet.cpp",
+   "engine_repo": "microsoft/BitNet",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
+   "cpu": {
+    "class": "x86_64 AVX2 (no AVX-512/VNNI)",
+    "model": "Intel Xeon @ 2.20GHz",
+    "vcpus": 4
+   },
+   "compiler": "gcc 13.3.0",
+   "build": "utils/codegen_tl2.py --model bitnet_b1_58-3B --BM 160,320,320 --BK 96,96,96 --bm 32,32,32; -DBITNET_X86_TL2=OFF",
+   "ppl": 113.3283,
+   "ppl_stderr": 9.51283,
+   "greedy": " a small city, and the capital of France is a small"
+  },
+  {
+   "id": "bitnetcpp-x86-pr2",
+   "engine": "bitnet.cpp + isHuangXin/llama.cpp#2",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "8000be462617183252792344b869297945f49aab",
+   "cpu": {
+    "class": "x86_64 AVX2",
+    "model": "Intel Xeon @ 2.20GHz",
+    "vcpus": 4
+   },
+   "compiler": "gcc 13.3.0",
+   "ppl": 113.3283,
+   "ppl_stderr": 9.51283,
+   "greedy": " a small city, and the capital of France is a small"
+  },
+  {
+   "id": "bitnetcpp-arm-official",
+   "engine": "bitnet.cpp",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "utils/codegen_tl1.py --model bitnet_b1_58-3B --BM 160,320,320 --BK 64,128,64 --bm 32,64,32; -DBITNET_ARM_TL1=OFF",
+   "ppl": null,
+   "greedy": "????????????",
+   "note": "garbage output, no error (microsoft/BitNet#598); ~0.8 tok/s"
+  },
+  {
+   "id": "bitnetcpp-armv8-official",
+   "engine": "bitnet.cpp",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
+   "cpu": {
+    "class": "aarch64 ARMv8.0 (build -march=armv8-a, scalar fallback)",
+    "model": "Neoverse-N1 (emulated class)",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "ppl": null,
+   "greedy": "????????????",
+   "note": "garbage output, no error (matches microsoft/BitNet#411)"
+  },
+  {
+   "id": "bitnetcpp-arm-pr2",
+   "engine": "bitnet.cpp + isHuangXin/llama.cpp#2",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "8000be462617183252792344b869297945f49aab",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "ppl": 113.2588,
+   "ppl_windows": [
+    46.8686,
+    89.8419,
+    91.8506,
+    108.1625,
+    102.3266,
+    104.523,
+    109.8576,
+    113.2588
+   ],
+   "greedy": " a small city, and the capital of France is a small",
+   "checks": {
+    "ub1_first2_windows": [
+     46.7968,
+     89.3551
+    ],
+    "t1_first2_windows": [
+     46.8686,
+     89.8419
+    ]
+   }
+  },
+  {
+   "id": "bitnetcpp-armv8-pr2",
+   "engine": "bitnet.cpp + isHuangXin/llama.cpp#2",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "8000be462617183252792344b869297945f49aab",
+   "cpu": {
+    "class": "aarch64 ARMv8.0 (build -march=armv8-a, scalar fallback)",
+    "model": "Neoverse-N1 (emulated class)",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "ppl": 113.2736,
+   "ppl_windows": [
+    46.9068,
+    89.843,
+    91.8807,
+    108.2208,
+    102.3726,
+    104.5721,
+    109.8729,
+    113.2736
+   ],
+   "greedy": " a small city, and the capital of France is a small"
+  }
+ ],
+ "notes": [
+  "Known issues, not discoveries of this report: the ~6x perplexity comes from the FFN graph using SiLU where BitNet b1.58 uses ReLU2 (microsoft/BitNet#588, reported 2026-07-19; also #602). The aarch64 garbage output starts at 112f853 (microsoft/BitNet#470, bisected 2026-03-15; layout fixes in #586, isHuangXin/llama.cpp#2, #633). None of the fixes were merged as of 2026-10-09.",
+  "What this report adds: a reference on the same token IDs (HF transformers, 18.7934); ik_llama.cpp (converted to iq2_bn_r4) matching it; bitnet.cpp 404980e (June 2025) matching it; and current main + isHuangXin/llama.cpp#2 + the one-line fix from #588 matching it on aarch64 (18.8444).",
+  "The GGUF has no tokenizer.ggml.pre; GGUF runtimes tokenize WikiText into ~16% more tokens than the HF tokenizer (1631 vs 1407 on the first 6000 bytes). The HF tokenizer gives PPL 15.3107 on its own tokens, which is not comparable to the rows above. Already noted in microsoft/BitNet#588 (override with tokenizer.ggml.pre=llama-bpe) and PR #508."
+ ]
 }
