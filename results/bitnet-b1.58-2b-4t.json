@@ -1,5 +1,5 @@
 {
-  "schema": "lowbit-cpu-report/v0",
+  "schema": "lowbit-atlas/v0",
   "measured": "2026-10-06/2026-10-09",
   "model": {
     "name": "BitNet-b1.58-2B-4T",

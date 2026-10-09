@@ -1,5 +1,5 @@
 {
-  "schema": "lowbit-cpu-report/v0",
+  "schema": "lowbit-atlas/v0",
   "measured": "2026-10-07/2026-10-08",
   "models": {
     "Q1_0": {"repo": "prism-ml/Bonsai-1.7B-gguf", "revision": "210a9e99f79cb184909d49595906526eb2b3dd9a",

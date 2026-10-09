@@ -1,5 +1,5 @@
 {
-  "schema": "lowbit-cpu-report/v0",
+  "schema": "lowbit-atlas/v0",
   "measured": "2026-10-07/2026-10-09",
   "models": {
     "PTQ1_0": {"repo": "prism-ml/Ternary-Bonsai-2-27B-gguf", "revision": "b072e1d3b35a0a630cece372c2127528e0994386",
