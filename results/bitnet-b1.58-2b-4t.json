@@ -188,6 +188,75 @@
    "greedy": " Paris. Paris is a city that is known for its rich"
   },
   {
+   "id": "bitnetcpp-arm-pr633",
+   "engine": "bitnet.cpp + microsoft/BitNet#633",
+   "commit": "da15e38 (PR head, on 0b341e5)",
+   "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "as setup_env.py (codegen_tl1, -DBITNET_ARM_TL1=OFF)",
+   "ppl": null,
+   "ppl_windows": [
+    "nan",
+    "nan",
+    "nan",
+    "nan",
+    "nan",
+    "nan",
+    "nan",
+    "nan"
+   ],
+   "greedy": "????????????",
+   "note": "no effect on current main: the PR edits src/ggml-bitnet-mad.cpp, which the 390c307 submodule no longer compiles (0 objects); the I2_S kernel now lives in the submodule's ggml-cpu/quants.c"
+  },
+  {
+   "id": "bitnetcpp-arm-2026-03",
+   "engine": "bitnet.cpp (March 2026)",
+   "commit": "01eb415",
+   "submodule": "Eddie-Wang1120/llama.cpp@1f86f05",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "as setup_env.py (codegen_tl1, -DBITNET_ARM_TL1=OFF)",
+   "ppl": 40118134.2038,
+   "greedy": "!!!!!!!!!!!!",
+   "note": "base of PR #586; same garbage as 112f853 (microsoft/BitNet#470)"
+  },
+  {
+   "id": "bitnetcpp-arm-pr586",
+   "engine": "bitnet.cpp (March 2026) + microsoft/BitNet#586",
+   "commit": "a92dbc3 (PR head, on 01eb415)",
+   "submodule": "Eddie-Wang1120/llama.cpp@1f86f05",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "as setup_env.py (codegen_tl1, -DBITNET_ARM_TL1=OFF)",
+   "ppl": 18.8515,
+   "ppl_stderr": 1.30575,
+   "ppl_windows": [
+    14.266,
+    21.8564,
+    19.7821,
+    21.8715,
+    19.7656,
+    18.7084,
+    18.7179,
+    18.8515
+   ],
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "note": "correct on its own base (identical to June 2025); does not apply to current main for the same reason as #633"
+  },
+  {
    "id": "bitnetcpp-x86-official",
    "engine": "bitnet.cpp",
    "engine_repo": "microsoft/BitNet",
@@ -312,6 +381,7 @@
  "notes": [
   "Known issues, not discoveries of this report: the ~6x perplexity comes from the FFN graph using SiLU where BitNet b1.58 uses ReLU2 (microsoft/BitNet#588, reported 2026-07-19; also #602). The aarch64 garbage output starts at 112f853 (microsoft/BitNet#470, bisected 2026-03-15; layout fixes in #586, isHuangXin/llama.cpp#2, #633). None of the fixes were merged as of 2026-10-09.",
   "What this report adds: a reference on the same token IDs (HF transformers, 18.7934); ik_llama.cpp (converted to iq2_bn_r4) matching it; bitnet.cpp 404980e (June 2025) matching it; and current main + isHuangXin/llama.cpp#2 + the one-line fix from #588 matching it on aarch64 (18.8444).",
+  "ARM fixes in circulation, measured against the reference: isHuangXin/llama.cpp#2 + the #588 line fixes current main (18.8444); microsoft/BitNet#586 is correct on its March 2026 base (18.8515) but edits a file that current main no longer compiles; microsoft/BitNet#633 has no effect on current main (still ????). That src/ggml-bitnet-mad.cpp dropped out of the build was noted in microsoft/BitNet#626; the cause is the July 2026 submodule switch.",
   "The GGUF has no tokenizer.ggml.pre; GGUF runtimes tokenize WikiText into ~16% more tokens than the HF tokenizer (1631 vs 1407 on the first 6000 bytes). The HF tokenizer gives PPL 15.3107 on its own tokens, which is not comparable to the rows above. Already noted in microsoft/BitNet#588 (override with tokenizer.ggml.pre=llama-bpe) and PR #508."
  ]
 }
