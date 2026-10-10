@@ -1,6 +1,6 @@
 # Low-bit LLMs on CPU: what runs correctly and fast where (Oct 2026)
 
-> **Status: draft, not published yet.** Numbers marked *pending* are still being measured.
+> **Status: draft, not published yet.**
 
 An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`), and `scripts/` rebuilds and reruns it.
 
@@ -20,15 +20,29 @@ Same official GGUF (`ggml-model-i2_s.gguf`, sha256 `4221b252…`) and the same 4
 | Runtime / fix | CPU | Greedy text | PPL | vs reference |
 |---|---|---|---|---|
 | **HF transformers (reference)** | — | "Paris. Paris is a city in the Île-de-F…" | **18.79** | — |
-| bitnet.cpp main (`0b341e5`) | x86-64 AVX2 | "a small city, and the capital of France is a small" | 113.33 | **6.0× — wrong** |
+| bitnet.cpp main (`0b341e5`) | x86-64 AVX2 | "a small city, and the capital of France is a small" | 113.33 | **6.0× — wrong** (same with gcc 13.3 and clang 18) |
 | bitnet.cpp main | aarch64 | `????????????` | — | **garbage** |
 | main + [isHuangXin/llama.cpp#2](https://github.com/isHuangXin/llama.cpp/pull/2) | aarch64 | "a small city, and…" | 113.26 | 6.0× — layout fixed, activation still wrong |
 | **main + llama.cpp#2 + the one-line fix from [#588](https://github.com/microsoft/BitNet/issues/588)** | aarch64 NEON+dotprod | "Paris. Paris is a city that is known for its rich" | **18.84** | **+0.27% — correct** |
-| main + the one-line fix from #588 | x86-64 AVX2 | *pending* | *pending* | *pending* |
+| **main + the one-line fix from #588** | x86-64 AVX2 | "Paris. Paris is a city that is known for its rich" | **18.87** | **+0.39% — correct** |
+| main + llama.cpp#2 + the #588 line (same recipe as aarch64) | x86-64 AVX2 | same | 18.87 | identical to the line above: one recipe for both |
 | main + [#633](https://github.com/microsoft/BitNet/pull/633) | aarch64 | `????????????` | — | no effect: edits a file current main does not compile |
 | [#586](https://github.com/microsoft/BitNet/pull/586) on its own base (`01eb415`, Mar 2026) | aarch64 | "Paris. Paris is a city…" | 18.85 | correct, but does not apply to current main (same reason) |
-| bitnet.cpp `404980e` (June 2025) | aarch64 | "Paris. Paris is a city…" | 18.85 | correct (before the regression) |
+| bitnet.cpp `404980e` (June 2025) | aarch64 / x86-64 | "Paris. Paris is a city…" | 18.85 / 18.81 | correct (before the regression) |
 | **ik_llama.cpp `04b4ebc`** (file converted to `iq2_bn_r4`, as [ik#387](https://github.com/ikawrakow/ik_llama.cpp/issues/387) documents) | aarch64 / x86-64 | "Paris. Paris is a city…" | **18.81 / 18.85** | **correct** |
+
+All correct implementations land within +0.1–0.4% of the reference. A GGUF runtime quantizes activations to 8 bits and the reference runs in float32, so a small positive offset is expected. The wrong one is at +503%.
+
+**Cross-check with the numbers published in #588.** We reran the protocol posted there by isaacmadine96-art (20 × 512 windows, `-t 4`) on our own x86-64 machine:
+
+| Build | Their result | Ours |
+|---|---|---|
+| June 2025 (`765741d`; same build code as `404980e`) | 19.6002 ± 0.85043 | 19.6002 ± 0.85043 |
+| current main (`16da220` = `0b341e5`) | 118.7272 ± 6.21259 | 118.7272 ± 6.21259 |
+| June 2025, `tokenizer.ggml.pre=llama-bpe` | 16.7775 | 16.7775 |
+| current main + #588 fix, `llama-bpe` | — | 16.7876 |
+
+The results are identical to the fourth decimal on a different machine, so the two measurements confirm each other.
 
 **What to use today:**
 
@@ -41,7 +55,7 @@ Same official GGUF (`ggml-model-i2_s.gguf`, sha256 `4221b252…`) and the same 4
 - The aarch64 regression was bisected to `112f853` in microsoft/BitNet#470 by aqn96.
 - That `ggml-bitnet-mad.cpp` had dropped out of the build was noted in #626.
 
-What this report adds is the comparison of the fixes against a reference on identical token IDs. Details: [`results/bitnet-b1.58-2b-4t.json`](results/bitnet-b1.58-2b-4t.json).
+What this report adds is the comparison of the fixes against a reference on identical token IDs, on both aarch64 and x86-64, plus an exact reproduction of the numbers published in #588. Details: [`results/bitnet-b1.58-2b-4t.json`](results/bitnet-b1.58-2b-4t.json).
 
 ## Bonsai 1.7B (Prism): correct everywhere tested
 

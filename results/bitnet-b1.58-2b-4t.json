@@ -376,12 +376,152 @@
     113.2736
    ],
    "greedy": " a small city, and the capital of France is a small"
+  },
+  {
+   "id": "bitnetcpp-x86-official-clang",
+   "engine": "bitnet.cpp",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
+   "ppl": 113.3283,
+   "ppl_stderr": 9.51283,
+   "ppl_windows": [
+    47.2744,
+    90.3237,
+    92.0372,
+    108.681,
+    102.6649,
+    104.7082,
+    109.9777,
+    113.3283
+   ],
+   "greedy": " a small city, and the capital of France is a small",
+   "note": "identical to the gcc 13.3 build: the compiler plays no part",
+   "cpu": {
+    "class": "x86_64 AVX2 (no AVX-512/VNNI)",
+    "model": "Intel Xeon @ 2.20GHz",
+    "vcpus": 4
+   },
+   "compiler": "clang 18.1.3",
+   "build": "codegen_tl2 as setup_env.py; -DBITNET_X86_TL2=OFF"
+  },
+  {
+   "id": "bitnetcpp-x86-588fix",
+   "engine": "bitnet.cpp + one-line fix from microsoft/BitNet#588",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
+   "patch": "src/models/bitnet.cpp:133 LLM_FFN_SILU -> LLM_FFN_RELU_SQR",
+   "ppl": 18.8676,
+   "ppl_stderr": 1.30638,
+   "ppl_windows": [
+    14.5202,
+    22.05,
+    19.9557,
+    21.9956,
+    19.8102,
+    18.6962,
+    18.7371,
+    18.8676
+   ],
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "cpu": {
+    "class": "x86_64 AVX2 (no AVX-512/VNNI)",
+    "model": "Intel Xeon @ 2.20GHz",
+    "vcpus": 4
+   },
+   "compiler": "clang 18.1.3",
+   "build": "codegen_tl2 as setup_env.py; -DBITNET_X86_TL2=OFF"
+  },
+  {
+   "id": "bitnetcpp-x86-pr2-588fix",
+   "engine": "bitnet.cpp + isHuangXin/llama.cpp#2 + one-line fix from #588",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "8000be462617183252792344b869297945f49aab",
+   "patch": "src/models/bitnet.cpp:133 LLM_FFN_SILU -> LLM_FFN_RELU_SQR",
+   "ppl": 18.8676,
+   "ppl_stderr": 1.30638,
+   "ppl_windows": [
+    14.5202,
+    22.05,
+    19.9557,
+    21.9956,
+    19.8102,
+    18.6962,
+    18.7371,
+    18.8676
+   ],
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "note": "identical to the #588 fix alone: the same recipe works on aarch64 and x86_64",
+   "cpu": {
+    "class": "x86_64 AVX2 (no AVX-512/VNNI)",
+    "model": "Intel Xeon @ 2.20GHz",
+    "vcpus": 4
+   },
+   "compiler": "clang 18.1.3",
+   "build": "codegen_tl2 as setup_env.py; -DBITNET_X86_TL2=OFF"
+  },
+  {
+   "id": "bitnetcpp-x86-2025-06",
+   "engine": "bitnet.cpp (June 2025)",
+   "commit": "404980eecae38affa4871c3e419eae3f44536a95",
+   "submodule": "Eddie-Wang1120/llama.cpp@40ed0f290203a9a78540b8f7eb18bd828043fe21",
+   "ppl": 18.8137,
+   "ppl_stderr": 1.30253,
+   "ppl_windows": [
+    14.5193,
+    22.0187,
+    19.8675,
+    21.9324,
+    19.7624,
+    18.6729,
+    18.6838,
+    18.8137
+   ],
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "cpu": {
+    "class": "x86_64 AVX2 (no AVX-512/VNNI)",
+    "model": "Intel Xeon @ 2.20GHz",
+    "vcpus": 4
+   },
+   "compiler": "clang 18.1.3",
+   "build": "codegen_tl2 as setup_env.py; -DBITNET_X86_TL2=OFF"
   }
  ],
  "notes": [
   "Known issues, not discoveries of this report: the ~6x perplexity comes from the FFN graph using SiLU where BitNet b1.58 uses ReLU2 (microsoft/BitNet#588, reported 2026-07-19; also #602). The aarch64 garbage output starts at 112f853 (microsoft/BitNet#470, bisected 2026-03-15; layout fixes in #586, isHuangXin/llama.cpp#2, #633). None of the fixes were merged as of 2026-10-09.",
-  "What this report adds: a reference on the same token IDs (HF transformers, 18.7934); ik_llama.cpp (converted to iq2_bn_r4) matching it; bitnet.cpp 404980e (June 2025) matching it; and current main + isHuangXin/llama.cpp#2 + the one-line fix from #588 matching it on aarch64 (18.8444).",
+  "What this report adds: a reference on the same token IDs (HF transformers, 18.7934); ik_llama.cpp (converted to iq2_bn_r4) matching it; bitnet.cpp 404980e (June 2025) matching it; current main + the one-line fix from #588 matching it on x86_64 (18.8676) and, with isHuangXin/llama.cpp#2, on aarch64 (18.8444); and an exact reproduction of the numbers published in #588.",
   "ARM fixes in circulation, measured against the reference: isHuangXin/llama.cpp#2 + the #588 line fixes current main (18.8444); microsoft/BitNet#586 is correct on its March 2026 base (18.8515) but edits a file that current main no longer compiles; microsoft/BitNet#633 has no effect on current main (still ????). That src/ggml-bitnet-mad.cpp dropped out of the build was noted in microsoft/BitNet#626; the cause is the July 2026 submodule switch.",
   "The GGUF has no tokenizer.ggml.pre; GGUF runtimes tokenize WikiText into ~16% more tokens than the HF tokenizer (1631 vs 1407 on the first 6000 bytes). The HF tokenizer gives PPL 15.3107 on its own tokens, which is not comparable to the rows above. Already noted in microsoft/BitNet#588 (override with tokenizer.ggml.pre=llama-bpe) and PR #508."
- ]
+ ],
+ "cross_check_588": {
+  "what": "The protocol published by isaacmadine96-art in microsoft/BitNet#588 (comment 2026-07-27), rerun on our x86_64 machine: WikiText-2, 20 x 512 windows, -t 4. 765741d has the same build code as 404980e (only gpu/, conversion utils, README and setup_env.py differ; same submodule 40ed0f2); 16da220 has the same code as 0b341e5.",
+  "cpu": {
+   "class": "x86_64 AVX2 (no AVX-512/VNNI)",
+   "model": "Intel Xeon @ 2.20GHz",
+   "vcpus": 4
+  },
+  "compiler": "clang 18.1.3",
+  "rows": [
+   {
+    "build": "404980e (= 765741d)",
+    "theirs": "19.6002 +/- 0.85043",
+    "ours": "19.6002 +/- 0.85043"
+   },
+   {
+    "build": "0b341e5 (= 16da220)",
+    "theirs": "118.7272 +/- 6.21259",
+    "ours": "118.7272 +/- 6.21259"
+   },
+   {
+    "build": "404980e + --override-kv tokenizer.ggml.pre=str:llama-bpe",
+    "theirs": "16.7775",
+    "ours": "16.7775 +/- 0.70076"
+   },
+   {
+    "build": "0b341e5 + #588 fix + llama-bpe",
+    "theirs": null,
+    "ours": "16.7876 +/- 0.70088"
+   }
+  ],
+  "reading": "Identical to the fourth decimal and in the standard error, on a different machine: the two measurements confirm each other."
+ }
 }
