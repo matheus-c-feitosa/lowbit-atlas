@@ -9,8 +9,8 @@ An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For ea
 1. **BitNet-b1.58-2B-4T: the official runtime (bitnet.cpp) gives wrong output on CPU, silently, and has done so for months.**
    - On x86-64 the text looks fine, but perplexity is ~6× the reference: the FFN uses SiLU where the model uses ReLU² ([microsoft/BitNet#588](https://github.com/microsoft/BitNet/issues/588), reported July 2026).
    - On aarch64 the output is garbage (`????`) since commit `112f853`, Nov 2025 ([#470](https://github.com/microsoft/BitNet/issues/470)).
-   - Fixes have been proposed but **none is merged**. We tested them against a reference: **only one combination fixes current main**. See [BitNet](#bitnet-b158-2b-4t-which-fix-actually-works).
-2. **The Bonsai family (Prism) runs correctly** on every CPU class tested, in llama.cpp, the Prism fork and ik_llama.cpp. The differences are in **speed** and in **which file loads where**: the file marked "recommended" on one model card does not load in any runtime.
+   - Fixes have been proposed but **none is merged**. We tested them against a reference: on current main, **only the one-line activation fix from #588 (plus isHuangXin/llama.cpp#2 on aarch64) gives correct output**; two other proposed fixes do not reach the code that runs. See [BitNet](#bitnet-b158-2b-4t-which-fix-actually-works).
+2. **The Bonsai family (Prism) runs correctly** on every CPU class tested, in llama.cpp, the Prism fork and ik_llama.cpp. The differences are in **speed** and in **which file loads where**: the file marked "recommended" on one model card does not load in llama.cpp or the Prism fork.
 3. **Speed depends on the format × CPU × runtime path, not on file size.** The smallest 27B file is ~6× slower to process prompts on AVX2 x86. ik_llama.cpp with `-rtr` is the fastest in most cases measured (not for PQ2_0 generation on aarch64), and `-rtr` is off by default: without it, ik_llama.cpp is often the slowest.
 
 ## BitNet-b1.58-2B-4T: which fix actually works
