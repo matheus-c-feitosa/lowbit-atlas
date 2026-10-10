@@ -10,7 +10,7 @@ An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For ea
    - On x86-64 the text looks fine, but perplexity is ~6× the reference: the FFN uses SiLU where the model uses ReLU² ([microsoft/BitNet#588](https://github.com/microsoft/BitNet/issues/588), reported July 2026).
    - On aarch64 the output is garbage (`????`) since commit `112f853`, Nov 2025 ([#470](https://github.com/microsoft/BitNet/issues/470)).
    - Fixes have been proposed but **none is merged**. We tested them against a reference: on current main, **only the one-line activation fix from #588 (plus isHuangXin/llama.cpp#2 on aarch64) gives correct output**; two other proposed fixes do not reach the code that runs. See [BitNet](#bitnet-b158-2b-4t-which-fix-actually-works).
-2. **The Bonsai family (Prism) runs correctly** on every CPU class tested, in llama.cpp, the Prism fork and ik_llama.cpp. The differences are in **speed** and in **which file loads where**: the file marked "recommended" on one model card does not load in llama.cpp or the Prism fork.
+2. **The Bonsai family (Prism) runs correctly** in llama.cpp and the Prism fork on every CPU class tested, and in ik_llama.cpp where tested. The differences are in **speed** and in **which file loads where**: the file marked "recommended" on one model card does not load in llama.cpp or the Prism fork.
 3. **Speed depends on the format × CPU × runtime path, not on file size.** The smallest 27B file is ~6× slower to process prompts on AVX2 x86. ik_llama.cpp with `-rtr` is the fastest in most cases measured (not for PQ2_0 generation on aarch64), and `-rtr` is off by default: without it, ik_llama.cpp is often the slowest.
 
 ## BitNet-b1.58-2B-4T: which fix actually works
@@ -59,11 +59,11 @@ What this report adds is the comparison of the fixes against a reference on iden
 
 ## Bonsai 1.7B (Prism): correct everywhere tested
 
-Three formats × five CPU classes × llama.cpp and the Prism fork, plus ik_llama.cpp on aarch64. The CPU classes are aarch64 NEON+dotprod, aarch64 ARMv8.0, x86-64 AVX2, x86-64 AVX and x86-64 SSE.
+Three formats (PQ2_0 loads only in Prism) × five CPU classes × llama.cpp and the Prism fork, plus ik_llama.cpp on aarch64 NEON+dotprod. The CPU classes are aarch64 NEON+dotprod, aarch64 ARMv8.0, x86-64 AVX2, x86-64 AVX and x86-64 SSE.
 
 - Kernel tests: `test-backend-ops` 0 failures (llama.cpp 310/310, Prism 833/833) in every class.
 - Perplexity spread across classes and runtimes is ≤ 0.15%, within the spread between valid code paths (see [METHOD](METHOD.md#5-pitfalls-found-along-the-way)). Greedy text is identical everywhere.
-- KL against an exact F16 reference (aarch64) puts every runtime at the type's natural spread. No runtime is an outlier.
+- KL against an exact F16 reference (aarch64 NEON+dotprod) puts llama.cpp, Prism and ik_llama.cpp at the type's natural spread (Q1_0 ~2.2–2.5e-4, PQ2_0 ~0.8–1.0e-3). One case sits at the edge: ik_llama.cpp **with `-rtr`** on Q1_0 is 2.0× farther than the best path (4.5e-4, same top-1 98.7%). It quantizes activations differently (`Q8_K128`). Greedy text is unchanged, and it is not counted as a divergence, but it is the closest to the line.
 
 **Which file loads where:**
 
@@ -86,8 +86,8 @@ The legacy Q2_0 file problem was already reported (PrismML-Eng/llama.cpp#167, Te
 ## Ternary-Bonsai-2 27B (Prism): correct, speed depends on the file
 
 - PTQ1_0 aarch64 vs x86-64: PPL within 0.03%.
-- ik_llama.cpp vs Prism on PQ2_0 (x86-64): KLD ~2e-4, same top-1 99.2%.
-- PTQ1_0 and PQ2_0 hold bit-identical weights (PrismML-Eng/llama.cpp#148). In ik_llama.cpp with `-rtr` they give the same PPL to every printed digit. In Prism the PPL differs slightly because the kernels differ.
+- ik_llama.cpp vs Prism on PQ2_0 (x86-64): KLD 2.1e-4 with `-rtr` (same top-1 99.2%), 2.6e-4 without (98.8%). 2 windows only.
+- PTQ1_0 and PQ2_0 hold bit-identical weights (PrismML-Eng/llama.cpp#148). In ik_llama.cpp with `-rtr` they give the same PPL to every printed digit. In Prism the PPL differs slightly (8.7507 vs 8.7515), presumably because each type has its own kernel.
 - On AVX2 x86-64, PTQ1_0 processes prompts ~6× slower than PQ2_0 in Prism (no repacked path; PrismML-Eng/llama.cpp#324).
 - ik_llama.cpp with `-rtr` is ~1.9× (prompt) and ~2.4× (generation) faster than Prism on PQ2_0. Without `-rtr`, prompt processing is ~3.5× slower.
 - ik_llama.cpp labels this PQ2_0 file "IQ5_K". That is cosmetic: `general.file_type` 141 means PQ2_0 in Prism and IQ5_K in ik_llama.cpp.
@@ -103,9 +103,9 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 ## Limitations
 
 - One file per format, 512-token context, English text, 8 windows (2 for the 27B model).
-- Two physical machine types, aarch64 Neoverse-N1 and x86-64 AVX2. The older classes were emulated with build flags.
+- Real hardware: aarch64 Neoverse-N1 and x86-64 AVX2 (Intel Xeon @ 2.2 GHz, AMD EPYC 7B12). The older classes were emulated with build flags.
 - No GPU, AVX-512, Arm i8mm/SVE or Apple Silicon.
-- KL was measured on aarch64 only.
+- KL against an exact reference was measured on aarch64 only. On x86-64: PPL, greedy text, and KL between runtimes for the 27B model. For BitNet, only PPL was compared with the HF reference, not KL.
 - Runtimes move fast: the linked issues may have changed since October 2026.
 
 ## AI assistance

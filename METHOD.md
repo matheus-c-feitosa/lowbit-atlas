@@ -14,7 +14,7 @@ Two questions, for each model file × runtime × CPU class:
 | Models | BitNet-b1.58-2B-4T (I2_S); Bonsai-1.7B (Q1_0); Ternary-Bonsai-1.7B (Q2_0 g64, PQ2_0); Ternary-Bonsai-2-27B (PTQ1_0, PQ2_0) |
 | Runtimes | llama.cpp `c479922`; Prism fork `6bfcd79`; ik_llama.cpp `04b4ebc`; bitnet.cpp `0b341e5` and older commits, with and without community fixes |
 | CPU classes | aarch64 NEON + dotprod (Neoverse-N1); aarch64 ARMv8.0 (built with `-march=armv8-a`, no dotprod); x86-64 AVX2 (Intel Xeon @ 2.2 GHz, AMD EPYC 7B12); x86-64 AVX and SSE-only (built with explicit flags on an AVX2 machine) |
-| Compilers | clang 18.1.3 on aarch64, gcc 13.3 on x86-64 |
+| Compilers | clang 18.1.3 on aarch64; gcc 13.3 on x86-64, and clang 18.1.3 for the BitNet x86-64 runs that test the fixes (same result as gcc where both were run) |
 
 **Not covered:** GPUs, AVX-512, Arm with i8mm or SVE, real (not emulated) older CPUs, long context, other languages than English (one Portuguese prompt aside).
 
@@ -87,6 +87,6 @@ The natural spread **depends on the type**: ~2–3e-4 for Q1_0 and ~1e-3 for PQ2
 
 - One file per format, short context, English text.
 - Two physical machine types, with older CPU classes emulated by build flags.
-- KL measured on aarch64 only (x86: PPL and greedy text).
+- KL against an exact reference on aarch64 only. On x86-64: PPL, greedy text, and KL between runtimes for the 27B model. BitNet: PPL against the HF reference, not KL.
 - The 27B runs use 2 windows.
 - "Not found" is not "does not exist": check the linked issues for later changes.
