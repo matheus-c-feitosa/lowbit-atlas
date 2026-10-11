@@ -9,6 +9,7 @@ architecture (values from results/*.json) and prints:
   CLOSE    within 0.2% PPL / 2x KLD (the spread between valid code paths)
   DIFFERS  outside that range: worth a look
   NEW      nothing published for this label on this architecture
+  PARTIAL  fewer windows than published and no per-window value to compare
 Speed is only reported (machines differ), never judged.
 """
 import json
@@ -23,7 +24,8 @@ PPL = {
         "prism-q2_0_g64": 18.373330, "prism-pq2_0": 18.3701,
         "ik-pq2_0": 18.3528, "ik-rtr-pq2_0": 18.3449,
         "llama-f16-from-q1_0": 23.1607, "prism-f16-from-pq2_0": 18.3791,
-        "bitnet-fixed": 18.8444, "bitnet-2025-06": 18.8515,
+        "bitnet-fixed": 18.8444, "bitnet-605": 18.8444,
+        "bitnet-2025-06": 18.8515,
         "ik-bitnet": 18.8127, "prism-27b-ptq1_0": 8.7532,
     },
     "x86_64": {
@@ -31,10 +33,34 @@ PPL = {
         "llama-q2_0_g64": 18.3707, "prism-q2_0_g64": 18.3707,
         "prism-pq2_0": 18.3694, "bitnet-official": 113.3283,
         "bitnet-fixed": 18.8676, "bitnet-2025-06": 18.8137,
+        "bitnet-605": 18.8676,  # expected = fixed; not yet measured on x86
         "ik-bitnet": 18.8519, "prism-27b-ptq1_0": 8.7507,
         "prism-27b-pq2_0": 8.7515, "ik-rtr-27b-ptq1_0": 8.7552,
     },
 }
+# Per-window running PPL, to check runs with fewer windows (BitNet only).
+_FIX_ARM = [14.4323, 21.8927, 19.8875, 21.9400, 19.7718, 18.6801, 18.7215,
+            18.8444]
+_FIX_X86 = [14.5202, 22.0500, 19.9557, 21.9956, 19.8102, 18.6962, 18.7371,
+            18.8676]
+WINDOWS = {
+    "aarch64": {
+        "bitnet-fixed": _FIX_ARM, "bitnet-605": _FIX_ARM,
+        "bitnet-2025-06": [14.2660, 21.8564, 19.7821, 21.8715, 19.7656,
+                           18.7084, 18.7179, 18.8515],
+        "ik-bitnet": [14.2446, 21.8109, 19.7668, 21.8767, 19.6838, 18.6085,
+                      18.6467, 18.8127],
+    },
+    "x86_64": {
+        "bitnet-fixed": _FIX_X86, "bitnet-605": _FIX_X86,
+        "bitnet-official": [47.2744, 90.3237, 92.0372, 108.6810, 102.6649,
+                            104.7082, 109.9777, 113.3283],
+        "bitnet-2025-06": [14.5193, 22.0187, 19.8675, 21.9324, 19.7624,
+                           18.6729, 18.6838, 18.8137],
+    },
+}
+FULL_WINDOWS = 8  # 2 for the 27B labels
+
 KLD = {
     "aarch64": {
         "kl-llama-q1_0": 0.000224, "kl-llama-q1_0-vecdot": 0.000238,
@@ -50,6 +76,8 @@ TEXT = {
     "pq2_0": " Paris. The capital of France is Paris",
     "bitnet-fixed": " Paris. Paris is a city that is known for its rich",
     "bitnet-2025-06": " Paris. Paris is a city that is known for its rich",
+    "bitnet-605": " Paris. Paris is a city that is known for its rich",
+    "bitnet-605-nokey": " a small city, and the capital of France is a small",
     "ik-bitnet": " Paris. Paris is a city that is known for its rich",
 }
 LOADS = {  # runtime, file -> loads?
@@ -86,7 +114,17 @@ def main():
         if kind == "ppl":
             got = r.get("ppl")
             want = PPL.get(a, {}).get(label)
-            if want is not None:
+            n = len(r.get("ppl_windows") or [])
+            full = 2 if "27b" in label else FULL_WINDOWS
+            if want is not None and 0 < n < full:
+                win = WINDOWS.get(a, {}).get(label)
+                if win:
+                    want = win[n - 1]
+                    status = judge_ppl(got, want)
+                else:
+                    status = "PARTIAL"
+                want = f"{want} ({n} of {full} windows)"
+            elif want is not None:
                 status = judge_ppl(got, want)
         elif kind == "kl":
             got = r.get("kld_mean")

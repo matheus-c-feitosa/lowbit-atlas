@@ -22,6 +22,9 @@ BITNET_OLD_REV=404980eecae38affa4871c3e419eae3f44536a95
 # isHuangXin/llama.cpp#2 (aarch64 I2_S layout fix), head at test time
 BITNET_PR2_URL=https://github.com/isHuangXin/llama.cpp
 BITNET_PR2_REV=8000be462617183252792344b869297945f49aab
+# microsoft/BitNet#605: FFN activation read from <arch>.hidden_activation
+# (submodule commit by praneshnikhar, reachable in isHuangXin/llama.cpp)
+BITNET_605_REV=1d75155fcc8e882c9585f733704153784cddae04
 
 # --- data -------------------------------------------------------------------
 WIKI_URL=https://huggingface.co/datasets/ggml-org/ci/resolve/main/wikitext-2-raw-v1.zip

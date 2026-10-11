@@ -114,18 +114,25 @@ done
 # ---------------------------------------------------------- BitNet 2B4T
 fetch_model bitnet-i2_s
 BN=$(model_path bitnet-i2_s)
-for v in official fixed 2025-06; do
+ACT=(--override-kv bitnet-b1.58.hidden_activation=str:relu2)
+for v in official fixed 605 2025-06; do
   b=$SRC/bitnet-$v/build/bin
   if [ ! -x "$b/llama-perplexity" ]; then
     log "bitnet $v not built (scripts/build.sh bitnet-$v): skipped"; continue
   fi
-  m_greedy "bitnet-$v" "$b" "$BN" 12 "$FR"
+  extra=()
+  if [ $v = 605 ]; then
+    # without the key #605 keeps SiLU (wrong for this model): show it once
+    m_greedy bitnet-605-nokey "$b" "$BN" 12 "$FR"
+    extra=("${ACT[@]}")
+  fi
+  m_greedy "bitnet-$v" "$b" "$BN" 12 "$FR" "${extra[@]}"
   if garbage "bitnet-$v"; then
     # on aarch64 the official build prints '????'; its perplexity is nan
     # and takes ~10 min per window, so it is recorded as garbage instead
     log "bitnet-$v: garbage output, perplexity skipped"
   else
-    m_ppl "bitnet-$v" "$b" "$BN" 8
+    m_ppl "bitnet-$v" "$b" "$BN" 8 "${extra[@]}"
   fi
 done
 # ik_llama.cpp needs the I2_S file converted first (ik_llama.cpp#387)

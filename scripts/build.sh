@@ -55,11 +55,15 @@ build_ik() {
 #   official  main as published (0b341e5, submodule 390c307)
 #   fixed     main + isHuangXin/llama.cpp#2 + the one-line activation fix
 #             from microsoft/BitNet#588 (SiLU -> ReLU²)
+#   605       main + isHuangXin/llama.cpp#2 + microsoft/BitNet#605, which
+#             reads the activation from <arch>.hidden_activation (files
+#             without the key keep SiLU); run with
+#             --override-kv bitnet-b1.58.hidden_activation=str:relu2
 #   2025-06   404980e, the last commit before the I2_S kernel rewrite
 build_bitnet() { # variant
   local v=$1 src="$WORK/src/bitnet-$1" rev sub_url sub_rev gen flags
   case $v in
-    official|fixed) rev=$BITNET_REV ;;
+    official|fixed|605) rev=$BITNET_REV ;;
     2025-06) rev=$BITNET_OLD_REV ;;
     *) die "unknown bitnet variant: $v" ;;
   esac
@@ -70,10 +74,20 @@ build_bitnet() { # variant
   fi
   sub_url=$(git -C "$src" config -f .gitmodules submodule.3rdparty/llama.cpp.url)
   sub_rev=$(git -C "$src" ls-tree HEAD 3rdparty/llama.cpp | awk '{print $3}')
-  if [ "$v" = fixed ]; then
+  if [ "$v" = fixed ] || [ "$v" = 605 ]; then
     sub_url=$BITNET_PR2_URL; sub_rev=$BITNET_PR2_REV
   fi
   fetch_git "$src/3rdparty/llama.cpp" "$sub_url" "$sub_rev"
+  if [ "$v" = 605 ]; then
+    local d="$src/3rdparty/llama.cpp"
+    if ! grep -q LLM_KV_HIDDEN_ACT "$d/src/models/bitnet.cpp"; then
+      git -C "$d" fetch -q --depth 2 "$BITNET_PR2_URL" "$BITNET_605_REV" \
+        || die "bitnet 605: fetch $BITNET_605_REV"
+      git -C "$d" -c user.name=build -c user.email=build@localhost \
+        cherry-pick -n "$BITNET_605_REV" > "$src/cherry-pick.log" 2>&1 \
+        || die "bitnet 605: cherry-pick (see $src/cherry-pick.log)"
+    fi
+  fi
   if [ "$v" = fixed ]; then
     # microsoft/BitNet#588: BitNet b1.58 uses ReLU², not SiLU, in the FFN.
     sed -i 's/LLM_FFN_SILU, LLM_FFN_PAR, il);/LLM_FFN_RELU_SQR, LLM_FFN_PAR, il);/' \
@@ -106,14 +120,14 @@ build_bitnet() { # variant
   log "built bitnet.cpp ($v)"
 }
 
-[ $# -gt 0 ] || die "usage: $0 all | llama prism ik bitnet[-official|-fixed|-2025-06]"
+[ $# -gt 0 ] || die "usage: $0 all | llama prism ik bitnet[-official|-fixed|-605|-2025-06]"
 [ "$1" = all ] && set -- llama prism ik bitnet
 for what in "$@"; do
   case $what in
     llama) build_ggml llama.cpp "$LLAMA_URL" "$LLAMA_REV" ;;
     prism) build_ggml prism "$PRISM_URL" "$PRISM_REV" ;;
     ik) build_ik ;;
-    bitnet) for v in official fixed 2025-06; do build_bitnet $v; done ;;
+    bitnet) for v in official fixed 605 2025-06; do build_bitnet $v; done ;;
     bitnet-*) build_bitnet "${what#bitnet-}" ;;
     *) die "unknown target: $what" ;;
   esac
