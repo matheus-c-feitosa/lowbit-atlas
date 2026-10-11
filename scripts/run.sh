@@ -4,7 +4,8 @@
 #
 #   scripts/build.sh all          # once: build the runtimes
 #   scripts/run.sh quick          # BitNet 2B4T + Bonsai 1.7B (~1-2 h)
-#   scripts/run.sh full           # + Ternary-Bonsai-2 27B (needs >= 16 GB RAM)
+#   scripts/run.sh full           # + Ternary-Bonsai-2 27B (needs >= 16 GB RAM;
+#                                 # not yet run end to end)
 #
 # Every measurement is appended to $OUT ($WORK/results.jsonl) with the
 # CPU, runtime commit, model file and flags; logs go to $WORK/logs/.

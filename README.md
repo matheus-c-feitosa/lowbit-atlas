@@ -29,7 +29,7 @@ Same official GGUF (`ggml-model-i2_s.gguf`, sha256 `4221b252…`) and the same 4
 | **main + the one-line fix from #588** | x86-64 AVX2 | "Paris. Paris is a city that is known for its rich" | **18.87** | **+0.39% — correct** |
 | main + llama.cpp#2 + the #588 line (same recipe as aarch64) | x86-64 AVX2 | same | 18.87 | identical to the line above: one recipe for both |
 | main + llama.cpp#2 + [#605](https://github.com/microsoft/BitNet/pull/605), file as published | aarch64 | "a small city, and…" | — | still wrong: files without the activation key keep SiLU |
-| **main + llama.cpp#2 + #605, run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`** | aarch64 | "Paris. Paris is a city that is known for its rich" | **18.84** | **+0.27% — correct**, identical to the one-line fix, and other BitNet models are untouched |
+| **main + llama.cpp#2 + #605, run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`** | aarch64 | "Paris. Paris is a city that is known for its rich" | **18.84** | **+0.27% — correct**, identical to the one-line fix; files without the key keep SiLU |
 | main + [#633](https://github.com/microsoft/BitNet/pull/633) | aarch64 | `????????????` | — | no effect: edits a file current main does not compile |
 | [#586](https://github.com/microsoft/BitNet/pull/586) on its own base (`01eb415`, Mar 2026) | aarch64 | "Paris. Paris is a city…" | 18.85 | correct, but does not apply to current main (same reason) |
 | bitnet.cpp `404980e` (June 2025) | aarch64 / x86-64 | "Paris. Paris is a city…" | 18.85 / 18.81 | correct (before the regression) |
@@ -51,7 +51,7 @@ The results are identical to the fourth decimal on a different machine, so the t
 **What to use today:**
 
 - **Easiest:** ik_llama.cpp. Convert the file once with `llama-quantize --allow-requantize ggml-model-i2_s.gguf out.gguf iq2_bn_r4`. Measured correct on aarch64 and x86-64.
-- **bitnet.cpp, safe for every BitNet model:** apply #605 (on aarch64, also isHuangXin/llama.cpp#2), and run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`. Files without that key keep SiLU, so the older 1bitLLM models (`bitnet_b1_58-large`, `-3B`), which share the architecture and do use SiLU, are not affected. `scripts/build.sh bitnet-605` builds this. Measured on aarch64; the x86-64 run is pending.
+- **bitnet.cpp, safe for every BitNet model:** apply #605 (on aarch64, also isHuangXin/llama.cpp#2), and run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`. Files without that key keep SiLU, so by design the older 1bitLLM models (`bitnet_b1_58-large`, `-3B`), which share the architecture and do use SiLU, should not be affected. Those models were not tested here. `scripts/build.sh bitnet-605` builds this. Measured on aarch64; the x86-64 run is pending.
 - **bitnet.cpp, quickest, but only for BitNet-b1.58-2B-4T:** the one-line change from #588 (`LLM_FFN_SILU` → `LLM_FFN_RELU_SQR` in `3rdparty/llama.cpp/src/models/bitnet.cpp`; on aarch64, plus isHuangXin/llama.cpp#2). It switches every model of this architecture to ReLU², so **it breaks the 1bitLLM models**. That is why the same change was not accepted in llama.cpp, as discussed in #588. `scripts/build.sh bitnet-fixed` builds this.
 - **Tokenizer:** the published GGUF has no `tokenizer.ggml.pre`, so llama.cpp-based runtimes fall back to a default pre-tokenizer and produce ~16% more tokens than the HF tokenizer. Adding `--override-kv tokenizer.ggml.pre=str:llama-bpe` makes the tokenization match the model's own tokenizer (checked in #588). Perplexities on different tokenizations are not directly comparable (19.60 vs 16.78 in our rerun of the #588 protocol), so the tables above keep the default tokenization and score every runtime on identical tokens.
 
@@ -109,7 +109,7 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 
 ```bash
 WORK=$PWD/work scripts/build.sh all     # llama.cpp, Prism, ik_llama.cpp, 3 bitnet.cpp variants
-WORK=$PWD/work scripts/run.sh quick     # BitNet + Bonsai 1.7B; "full" adds the 27B (>= 16 GB RAM)
+WORK=$PWD/work scripts/run.sh quick     # BitNet + Bonsai 1.7B; "full" adds the 27B (>= 16 GB RAM, not yet run end to end)
 scripts/compare.py work/results.jsonl   # SAME / CLOSE / DIFFERS vs the numbers published here
 ```
 
