@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 # Run the measurements in results/ from scratch.
 #
 #   scripts/build.sh all          # once: build the runtimes

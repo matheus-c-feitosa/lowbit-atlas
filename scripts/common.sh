@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 # shellcheck shell=bash
 # Pinned inputs and small helpers shared by the other scripts.
 # Source it: . "$(dirname "$0")/common.sh"

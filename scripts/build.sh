@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: Apache-2.0
 # Build the runtimes at the pinned commits.
 #
 #   scripts/build.sh llama prism ik bitnet      # or: scripts/build.sh all

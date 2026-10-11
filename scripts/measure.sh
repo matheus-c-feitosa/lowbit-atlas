@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 # shellcheck shell=bash
 # Measurement functions. Source after common.sh:
 #   . scripts/common.sh; . scripts/measure.sh

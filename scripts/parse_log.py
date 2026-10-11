@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Parse llama.cpp / ik_llama.cpp tool output into JSON.
 
     parse_log.py ppl   <llama-perplexity log>

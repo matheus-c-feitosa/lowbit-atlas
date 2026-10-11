@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Compare a fresh run (results.jsonl from run.sh) with the published numbers.
 
     scripts/compare.py work/results.jsonl
