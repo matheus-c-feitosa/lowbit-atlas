@@ -1,5 +1,7 @@
 # Low-bit LLMs on CPU: what runs correctly and fast where (Oct 2026)
 
+By [Matheus Feitosa](https://github.com/matheus-c-feitosa) · October 2026
+
 > **Status: draft, not published yet.**
 
 An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`), and `scripts/` rebuilds and reruns it.
@@ -99,6 +101,10 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 ## Reproduce
 
 `scripts/` pins every input. `build.sh` builds llama.cpp, Prism, ik_llama.cpp and three bitnet.cpp variants at fixed commits; `common.sh` downloads and checks every file; `measure.sh` records each measurement with CPU, commits and flags. *The end-to-end runner is pending.*
+
+## Feedback
+
+Found an error, or have a CPU, runtime or model file that is not covered here? Please open an issue in this repository. Include the runtime commit, the CPU (`lscpu` on Linux), the file, and the exact command and output. Corrections are especially welcome: if one of the linked fixes gets merged, or a number here does not reproduce, the report will be updated and the change credited.
 
 ## Limitations
 
