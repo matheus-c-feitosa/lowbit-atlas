@@ -2,7 +2,7 @@
 
 By [Matheus Feitosa](https://github.com/matheus-c-feitosa) · October 2026
 
-> **Status: draft, not published yet.**
+> **First edition, October 2026.** Measurements and from-scratch reproduction done on aarch64. The from-scratch reproduction with these scripts on x86-64 is in progress; this note will be updated with the result.
 
 An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`), and `scripts/` rebuilds and reruns it.
 
