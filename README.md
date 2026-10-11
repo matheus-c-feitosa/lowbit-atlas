@@ -98,6 +98,7 @@ The legacy Q2_0 file problem was already reported (PrismML-Eng/llama.cpp#167, Te
 - PTQ1_0 and PQ2_0 hold bit-identical weights (PrismML-Eng/llama.cpp#148). In ik_llama.cpp with `-rtr` they give the same PPL to every printed digit. In Prism the PPL differs slightly (8.7507 vs 8.7515), presumably because each type has its own kernel.
 - On AVX2 x86-64, PTQ1_0 processes prompts ~6× slower than PQ2_0 in Prism (no repacked path; PrismML-Eng/llama.cpp#324).
 - ik_llama.cpp with `-rtr` is ~1.9× (prompt) and ~2.4× (generation) faster than Prism on PQ2_0. Without `-rtr`, prompt processing is ~3.5× slower.
+- **Update, 2026-10-11:** llama.cpp merged support for this model's architecture (the Hadamard rotation; ggml-org/llama.cpp#29600), but not the PQ2_0/PTQ1_0 types (`master` still has 43 ggml types). The published 27B files therefore still need the Prism fork or ik_llama.cpp.
 - ik_llama.cpp labels this PQ2_0 file "IQ5_K". That is cosmetic: `general.file_type` 141 means PQ2_0 in Prism and IQ5_K in ik_llama.cpp.
 
 ## How it was measured
