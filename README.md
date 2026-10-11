@@ -12,7 +12,7 @@ An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For ea
    - On x86-64 the text looks fine, but perplexity is ~6× the reference: the FFN uses SiLU where the model uses ReLU² ([microsoft/BitNet#588](https://github.com/microsoft/BitNet/issues/588), reported July 2026).
    - On aarch64 the output is garbage (`????`) since commit `112f853`, Nov 2025 ([#470](https://github.com/microsoft/BitNet/issues/470)).
    - Fixes have been proposed but **none is merged**. We tested them against a reference: on current main, **only the one-line activation fix from #588 (plus isHuangXin/llama.cpp#2 on aarch64) gives correct output**; two other proposed fixes do not reach the code that runs. See [BitNet](#bitnet-b158-2b-4t-which-fix-actually-works).
-2. **The Bonsai family (Prism) runs correctly** in llama.cpp and the Prism fork on every CPU class tested, and in ik_llama.cpp where tested. The differences are in **speed** and in **which file loads where**: the file marked "recommended" on one model card does not load in llama.cpp or the Prism fork.
+2. **The Bonsai family (Prism) runs correctly** in llama.cpp and the Prism fork on every CPU class tested, and in ik_llama.cpp where tested. The differences are in **speed** and in **which file loads where**: the file marked "recommended" on one model card does not load in any of the three runtimes.
 3. **Speed depends on the format × CPU × runtime path, not on file size.** The smallest 27B file is ~6× slower to process prompts on AVX2 x86. ik_llama.cpp with `-rtr` is the fastest in most cases measured (not for PQ2_0 generation on aarch64), and `-rtr` is off by default: without it, ik_llama.cpp is often the slowest.
 
 ## BitNet-b1.58-2B-4T: which fix actually works
@@ -74,7 +74,7 @@ Three formats (PQ2_0 loads only in Prism) × five CPU classes × llama.cpp and t
 | Bonsai-1.7B Q1_0 | ✔ | ✔ | ✔ |
 | Ternary-Bonsai-1.7B Q2_0 g64 | ✔ | ✔ | ✘ (no type 42) |
 | Ternary-Bonsai-1.7B PQ2_0 | ✘ (type 142 unknown) | ✔ | ✔ |
-| Ternary-Bonsai-1.7B **Q2_0 ("recommended" on the card)** | ✘ | ✘ (clear message: legacy layout) | — |
+| Ternary-Bonsai-1.7B **Q2_0 ("recommended" on the card)** | ✘ | ✘ (clear message: legacy layout) | ✘ |
 
 The legacy Q2_0 file problem was already reported (PrismML-Eng/llama.cpp#167, Ternary-Bonsai-27B-gguf discussions #64/#65). The 1.7B card still recommends it at revision `983b5de`.
 
@@ -100,7 +100,15 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 
 ## Reproduce
 
-`scripts/` pins every input. `build.sh` builds llama.cpp, Prism, ik_llama.cpp and three bitnet.cpp variants at fixed commits; `common.sh` downloads and checks every file; `measure.sh` records each measurement with CPU, commits and flags. *The end-to-end runner is pending.*
+```bash
+WORK=$PWD/work scripts/build.sh all     # llama.cpp, Prism, ik_llama.cpp, 3 bitnet.cpp variants
+WORK=$PWD/work scripts/run.sh quick     # BitNet + Bonsai 1.7B; "full" adds the 27B (>= 16 GB RAM)
+scripts/compare.py work/results.jsonl   # SAME / CLOSE / DIFFERS vs the numbers published here
+```
+
+Every input is pinned: runtime commits, model files (revision and sha256) and WikiText-2. `run.sh` records each measurement with the CPU, the runtime and submodule commits, and the flags.
+
+**Reproduced from scratch on aarch64** (Neoverse-N1, clang 18, 2026-10-11): all builds, then `run.sh quick` in about 2 h. Result: **43 of 43** comparable measurements came out SAME (greedy text, perplexity, KL, which file loads where). Speed is not judged: prompt processing came within 2.5% of the published numbers, generation within 10%. A from-scratch run on x86-64 is pending.
 
 ## Feedback
 

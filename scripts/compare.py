@@ -58,6 +58,7 @@ LOADS = {  # runtime, file -> loads?
     ("prism", "q1_0"): True, ("prism", "q2_0_g64"): True,
     ("prism", "pq2_0"): True, ("prism", "q2_0_legacy"): False,
     ("ik", "q1_0"): True, ("ik", "q2_0_g64"): False, ("ik", "pq2_0"): True,
+    ("ik", "q2_0_legacy"): False,
 }
 PROMPT = "The capital of France is"
 

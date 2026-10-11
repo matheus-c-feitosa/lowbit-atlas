@@ -25,11 +25,13 @@ _record() { # label kind bin model parsed_json flags...
   sub=$(_git_head "$bin/../../3rdparty/llama.cpp" 2>/dev/null)
   mkdir -p "$(dirname "$OUT")"
   python3 - "$label" "$kind" "$bin" "$rev" "$sub" "$model" "$parsed" \
-    "$(cpu_info)" "$*" >> "$OUT" <<'EOF'
+    "$(cpu_info)" "$*" "$WORK" >> "$OUT" <<'EOF'
 import json, os, sys
-label, kind, binary, rev, sub, model, parsed, cpu, flags = sys.argv[1:10]
+label, kind, binary, rev, sub, model, parsed, cpu, flags, work = sys.argv[1:11]
+# binary path relative to WORK, so records do not carry local paths
 rec = {"label": label, "kind": kind, "cpu": cpu, "runtime_commit": rev,
-       "binary": os.path.abspath(binary), "model": os.path.basename(model),
+       "binary": os.path.relpath(os.path.abspath(binary), os.path.abspath(work)),
+       "model": os.path.basename(model),
        "flags": flags}
 if sub:
     rec["submodule_commit"] = sub

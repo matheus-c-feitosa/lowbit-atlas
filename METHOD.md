@@ -77,11 +77,11 @@ The natural spread **depends on the type**: ~2–3e-4 for Q1_0 and ~1e-3 for PQ2
 
 - An aarch64 cloud VM (Neoverse-N1, 2 cores, 11 GiB).
 - Hosted x86-64 notebook VMs (4 vCPUs). The CPU model changes between sessions, and each run records it.
-- Other processes were running on both. Speed numbers come from `llama-bench` with repetitions and standard deviation; treat differences under ~5% as noise.
+- Other processes were running on both. Speed numbers come from `llama-bench` with repetitions and standard deviation. A rerun on the same aarch64 VM a day later came within 2.5% for prompt processing and within 10% for generation, so treat smaller differences as noise.
 
 ## 7. Reproducing
 
-`scripts/` rebuilds the runtimes at the pinned commits (`build.sh`), downloads and verifies every file (`common.sh`), and runs each measurement while recording CPU, commits and flags (`measure.sh`). End-to-end reproduction scripts are being finalized.
+`scripts/build.sh all` rebuilds the runtimes at the pinned commits, `scripts/run.sh quick|full` downloads and verifies every file and runs every measurement (recording CPU, commits and flags), and `scripts/compare.py` checks a run against the published numbers. A from-scratch run on aarch64 reproduced all 43 comparable measurements exactly; see the README.
 
 ## 8. Limits
 
