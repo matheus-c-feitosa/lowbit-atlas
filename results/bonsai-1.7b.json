@@ -1,133 +1,703 @@
 {
-  "schema": "lowbit-atlas/v0",
-  "measured": "2026-10-07/2026-10-08",
-  "models": {
-    "Q1_0": {"repo": "prism-ml/Bonsai-1.7B-gguf", "revision": "210a9e99f79cb184909d49595906526eb2b3dd9a",
-             "file": "Bonsai-1.7B-Q1_0.gguf", "bytes": 248302272,
-             "sha256": "3d7c6c90dd98717a203adb22d5eacd2581850e40aa5327e144b97766cae5f7e3"},
-    "Q2_0_g64": {"repo": "prism-ml/Ternary-Bonsai-1.7B-gguf", "revision": "983b5dec2ff16aab79990711ba0f828a499a7e6a",
-                 "file": "Ternary-Bonsai-1.7B-Q2_0_g64.gguf", "bytes": 490163968,
-                 "sha256": "6d0ecb3d9055969b5cde332b6fdb60e67ed3599e9f73e56b977731e1467e5c91"},
-    "PQ2_0": {"repo": "prism-ml/Ternary-Bonsai-1.7B-gguf", "revision": "983b5dec2ff16aab79990711ba0f828a499a7e6a",
-              "file": "Ternary-Bonsai-1.7B-PQ2_0.gguf", "bytes": 463290464,
-              "sha256": "de68ba48a8dacb21979915991e7741b917869d71410a370df951c0c3a237ae50"},
-    "Q2_0_legacy": {"repo": "prism-ml/Ternary-Bonsai-1.7B-gguf", "revision": "983b5dec2ff16aab79990711ba0f828a499a7e6a",
-                    "file": "Ternary-Bonsai-1.7B-Q2_0.gguf", "bytes": 463290464,
-                    "sha256": "d97d94eb564590c9f0300e54d3f87bbbb25a78693d0ade9f6e177973dcb8228a"}
+ "schema": "lowbit-atlas/v0",
+ "measured": "2026-10-07/2026-10-08",
+ "models": {
+  "Q1_0": {
+   "repo": "prism-ml/Bonsai-1.7B-gguf",
+   "revision": "210a9e99f79cb184909d49595906526eb2b3dd9a",
+   "file": "Bonsai-1.7B-Q1_0.gguf",
+   "bytes": 248302272,
+   "sha256": "3d7c6c90dd98717a203adb22d5eacd2581850e40aa5327e144b97766cae5f7e3"
   },
-  "engines": {
-    "llama.cpp": {"repo": "ggml-org/llama.cpp", "commit": "c479922ac520a08969b4c1dc154d7bbb3c386d85"},
-    "prism": {"repo": "PrismML-Eng/llama.cpp", "branch": "prism", "commit": "6bfcd79a2d426abcd2b50e3c2d09ae2225e70a17"},
-    "ik_llama.cpp": {"repo": "ikawrakow/ik_llama.cpp", "commit": "04b4ebc2b32240c7495c33cb23ee35ac8108bb2a"}
+  "Q2_0_g64": {
+   "repo": "prism-ml/Ternary-Bonsai-1.7B-gguf",
+   "revision": "983b5dec2ff16aab79990711ba0f828a499a7e6a",
+   "file": "Ternary-Bonsai-1.7B-Q2_0_g64.gguf",
+   "bytes": 490163968,
+   "sha256": "6d0ecb3d9055969b5cde332b6fdb60e67ed3599e9f73e56b977731e1467e5c91"
   },
-  "cpu_classes": {
-    "arm-dotprod": {"cpu": "Neoverse-N1, 2 cores (NEON + dotprod, no i8mm)", "compiler": "clang 18.1.3", "build": "native"},
-    "armv8.0": {"cpu": "Neoverse-N1, 2 cores", "compiler": "clang 18.1.3", "build": "-DGGML_NATIVE=OFF -DGGML_CPU_ARM_ARCH=armv8-a (NEON without dotprod, emulates Cortex-A53/A72 class)"},
-    "x86-avx2": {"cpu": "AMD EPYC 7B12 (Zen 2), 4 vCPUs (AVX2, no AVX-512/VNNI)", "compiler": "gcc 13.3.0", "build": "-march=native"},
-    "x86-avx1": {"cpu": "Intel Xeon @ 2.20GHz, 4 vCPUs", "compiler": "gcc 13.3.0", "build": "-DGGML_NATIVE=OFF, -msse4.2 -mf16c -mavx (emulates Sandy/Ivy Bridge class)"},
-    "x86-sse": {"cpu": "Intel Xeon @ 2.20GHz, 4 vCPUs", "compiler": "gcc 13.3.0", "build": "-DGGML_NATIVE=OFF, -msse4.2"}
+  "PQ2_0": {
+   "repo": "prism-ml/Ternary-Bonsai-1.7B-gguf",
+   "revision": "983b5dec2ff16aab79990711ba0f828a499a7e6a",
+   "file": "Ternary-Bonsai-1.7B-PQ2_0.gguf",
+   "bytes": 463290464,
+   "sha256": "de68ba48a8dacb21979915991e7741b917869d71410a370df951c0c3a237ae50"
   },
-  "protocol": {
-    "ppl": "WikiText-2 wiki.test.raw (sha256 173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08), llama-perplexity -c 512 --chunks 8 -t 2",
-    "kl": "llama-perplexity --kl-divergence-base on the reference, then --kl-divergence on the compared run; same 8 x 512 windows",
-    "greedy": "llama-completion -p 'The capital of France is' -n 8 --temp 0 -t 2 -c 512",
-    "kernel_tests": "test-backend-ops test -b CPU -o MUL_MAT,MUL_MAT_ID,GET_ROWS -p '(q1_0|q2_0|tq1_0|tq2_0|pq2_0|ptq1_0)'",
-    "exact_reference": "llama-quantize --allow-requantize <file> F16. Exact for Q1_0 (weights are +-d) and for PQ2_0 of this model (ternary x FP16 scale, no Hadamard rotation). The reference comes from the same code base, so it is exact but not independent."
+  "Q2_0_legacy": {
+   "repo": "prism-ml/Ternary-Bonsai-1.7B-gguf",
+   "revision": "983b5dec2ff16aab79990711ba0f828a499a7e6a",
+   "file": "Ternary-Bonsai-1.7B-Q2_0.gguf",
+   "bytes": 463290464,
+   "sha256": "d97d94eb564590c9f0300e54d3f87bbbb25a78693d0ade9f6e177973dcb8228a"
+  }
+ },
+ "engines": {
+  "llama.cpp": {
+   "repo": "ggml-org/llama.cpp",
+   "commit": "c479922ac520a08969b4c1dc154d7bbb3c386d85"
   },
-  "kernel_tests": {
-    "llama.cpp": {"passed": 310, "failed": 0, "classes": ["arm-dotprod", "armv8.0", "x86-avx2", "x86-avx1", "x86-sse"]},
-    "prism": {"passed": 833, "failed": 0, "classes": ["arm-dotprod", "armv8.0", "x86-avx2", "x86-avx1", "x86-sse"]}
+  "prism": {
+   "repo": "PrismML-Eng/llama.cpp",
+   "branch": "prism",
+   "commit": "6bfcd79a2d426abcd2b50e3c2d09ae2225e70a17"
   },
-  "load": [
-    {"file": "Q1_0", "llama.cpp": "loads", "prism": "loads", "ik_llama.cpp": "loads", "greedy": " Paris, and the capital of Spain is"},
-    {"file": "Q2_0_g64", "llama.cpp": "loads", "prism": "loads", "ik_llama.cpp": "refuses: type 42 does not exist in ik_llama.cpp", "greedy": " Paris. The capital of France is Paris"},
-    {"file": "PQ2_0", "llama.cpp": "refuses: invalid ggml type 142. should be in [0, 43)", "prism": "loads", "ik_llama.cpp": "loads", "greedy": " Paris. The capital of France is Paris"},
-    {"file": "Q2_0_legacy", "llama.cpp": "refuses: tensor 'blk.0.attn_k.weight' has offset 82516128, expected 87369536",
-     "prism": "refuses with a diagnostic: legacy Prism Q2_0 layout (group size 128 stored as ggml type id 42); use the PQ2_0 version or the group-64 Q2_0 file",
-     "note": "this file is the one marked 'recommended' on the model card at this revision; already reported upstream for the 27B repo (Ternary-Bonsai-27B-gguf discussions #64/#65)"}
+  "ik_llama.cpp": {
+   "repo": "ikawrakow/ik_llama.cpp",
+   "commit": "04b4ebc2b32240c7495c33cb23ee35ac8108bb2a"
+  }
+ },
+ "cpu_classes": {
+  "arm-dotprod": {
+   "cpu": "Neoverse-N1, 2 cores (NEON + dotprod, no i8mm)",
+   "compiler": "clang 18.1.3",
+   "build": "native"
+  },
+  "armv8.0": {
+   "cpu": "Neoverse-N1, 2 cores",
+   "compiler": "clang 18.1.3",
+   "build": "-DGGML_NATIVE=OFF -DGGML_CPU_ARM_ARCH=armv8-a (NEON without dotprod, emulates Cortex-A53/A72 class)"
+  },
+  "x86-avx2": {
+   "cpu": "AMD EPYC 7B12 (Zen 2), 4 vCPUs (AVX2, no AVX-512/VNNI)",
+   "compiler": "gcc 13.3.0",
+   "build": "-march=native"
+  },
+  "x86-avx1": {
+   "cpu": "Intel Xeon @ 2.20GHz, 4 vCPUs",
+   "compiler": "gcc 13.3.0",
+   "build": "-DGGML_NATIVE=OFF, -msse4.2 -mf16c -mavx (emulates Sandy/Ivy Bridge class)"
+  },
+  "x86-sse": {
+   "cpu": "Intel Xeon @ 2.20GHz, 4 vCPUs",
+   "compiler": "gcc 13.3.0",
+   "build": "-DGGML_NATIVE=OFF, -msse4.2"
+  }
+ },
+ "protocol": {
+  "ppl": "WikiText-2 wiki.test.raw (sha256 173c87a53759e0201f33e0ccf978e510c2042d7f2cb78229d9a50d79b9e7dd08), llama-perplexity -c 512 --chunks 8 -t 2",
+  "kl": "llama-perplexity --kl-divergence-base on the reference, then --kl-divergence on the compared run; same 8 x 512 windows",
+  "greedy": "llama-completion -p 'The capital of France is' -n 8 --temp 0 -t 2 -c 512",
+  "kernel_tests": "test-backend-ops test -b CPU -o MUL_MAT,MUL_MAT_ID,GET_ROWS -p '(q1_0|q2_0|tq1_0|tq2_0|pq2_0|ptq1_0)'",
+  "exact_reference": "llama-quantize --allow-requantize <file> F16. Exact for Q1_0 (weights are +-d) and for PQ2_0 of this model (ternary x FP16 scale, no Hadamard rotation). The reference comes from the same code base, so it is exact but not independent."
+ },
+ "kernel_tests": {
+  "llama.cpp": {
+   "passed": 310,
+   "failed": 0,
+   "classes": [
+    "arm-dotprod",
+    "armv8.0",
+    "x86-avx2",
+    "x86-avx1",
+    "x86-sse"
+   ]
+  },
+  "prism": {
+   "passed": 833,
+   "failed": 0,
+   "classes": [
+    "arm-dotprod",
+    "armv8.0",
+    "x86-avx2",
+    "x86-avx1",
+    "x86-sse"
+   ]
+  }
+ },
+ "load": [
+  {
+   "file": "Q1_0",
+   "llama.cpp": "loads",
+   "prism": "loads",
+   "ik_llama.cpp": "loads",
+   "greedy": " Paris, and the capital of Spain is"
+  },
+  {
+   "file": "Q2_0_g64",
+   "llama.cpp": "loads",
+   "prism": "loads",
+   "ik_llama.cpp": "refuses: type 42 does not exist in ik_llama.cpp",
+   "greedy": " Paris. The capital of France is Paris"
+  },
+  {
+   "file": "PQ2_0",
+   "llama.cpp": "refuses: invalid ggml type 142. should be in [0, 43)",
+   "prism": "loads",
+   "ik_llama.cpp": "loads",
+   "greedy": " Paris. The capital of France is Paris"
+  },
+  {
+   "file": "Q2_0_legacy",
+   "llama.cpp": "refuses: tensor 'blk.0.attn_k.weight' has offset 82516128, expected 87369536",
+   "prism": "refuses with a diagnostic: legacy Prism Q2_0 layout (group size 128 stored as ggml type id 42); use the PQ2_0 version or the group-64 Q2_0 file",
+   "note": "this file is the one marked 'recommended' on the model card at this revision; already reported upstream for the 27B repo (Ternary-Bonsai-27B-gguf discussions #64/#65)"
+  }
+ ],
+ "ppl": [
+  {
+   "file": "Q1_0",
+   "engine": "llama.cpp",
+   "class": "arm-dotprod",
+   "path": "repack q1_0_4x4_q8_0",
+   "ppl": 23.155823,
+   "ppl_stderr": 1.801195
+  },
+  {
+   "file": "Q1_0",
+   "engine": "prism",
+   "class": "arm-dotprod",
+   "path": "repack q1_0_4x4_q8_0",
+   "ppl": 23.155823,
+   "ppl_stderr": 1.801195
+  },
+  {
+   "file": "Q1_0",
+   "engine": "llama.cpp",
+   "class": "arm-dotprod",
+   "path": "vec_dot (--no-repack)",
+   "ppl": 23.1794
+  },
+  {
+   "file": "Q1_0",
+   "engine": "prism",
+   "class": "arm-dotprod",
+   "path": "vec_dot (--no-repack)",
+   "ppl": 23.1794
+  },
+  {
+   "file": "Q1_0",
+   "engine": "llama.cpp",
+   "class": "armv8.0",
+   "ppl": 23.165
+  },
+  {
+   "file": "Q1_0",
+   "engine": "prism",
+   "class": "armv8.0",
+   "ppl": 23.165
+  },
+  {
+   "file": "Q1_0",
+   "engine": "llama.cpp",
+   "class": "x86-avx2",
+   "path": "vec_dot (no Q1_0 repack on x86 in llama.cpp)",
+   "ppl": 23.1792
+  },
+  {
+   "file": "Q1_0",
+   "engine": "prism",
+   "class": "x86-avx2",
+   "path": "repack q1_0_4x8_q8_0, Q8_0 activations with one scale per 128",
+   "ppl": 23.1535
+  },
+  {
+   "file": "Q1_0",
+   "engine": "llama.cpp",
+   "class": "x86-avx1",
+   "ppl": 23.1657
+  },
+  {
+   "file": "Q1_0",
+   "engine": "prism",
+   "class": "x86-avx1",
+   "ppl": 23.1657
+  },
+  {
+   "file": "Q1_0",
+   "engine": "llama.cpp",
+   "class": "x86-sse",
+   "ppl": 23.1575
+  },
+  {
+   "file": "Q1_0",
+   "engine": "prism",
+   "class": "x86-sse",
+   "ppl": 23.1575
+  },
+  {
+   "file": "Q1_0",
+   "engine": "ik_llama.cpp",
+   "class": "arm-dotprod",
+   "flags": "default",
+   "ppl": 23.1423
+  },
+  {
+   "file": "Q1_0",
+   "engine": "ik_llama.cpp",
+   "class": "arm-dotprod",
+   "flags": "-rtr",
+   "ppl": 23.165
+  },
+  {
+   "file": "Q1_0 -> F16 (exact reference)",
+   "engine": "llama.cpp",
+   "class": "arm-dotprod",
+   "ppl": 23.1607
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "llama.cpp",
+   "class": "arm-dotprod",
+   "ppl": 18.37333,
+   "ppl_stderr": 1.370957
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "prism",
+   "class": "arm-dotprod",
+   "ppl": 18.37333,
+   "ppl_stderr": 1.370957
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "llama.cpp",
+   "class": "armv8.0",
+   "ppl": 18.3912
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "prism",
+   "class": "armv8.0",
+   "ppl": 18.3912
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "llama.cpp",
+   "class": "x86-avx2",
+   "ppl": 18.3707
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "prism",
+   "class": "x86-avx2",
+   "ppl": 18.3707
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "llama.cpp",
+   "class": "x86-avx1",
+   "ppl": 18.3772
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "prism",
+   "class": "x86-avx1",
+   "ppl": 18.3772
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "llama.cpp",
+   "class": "x86-sse",
+   "ppl": 18.3634
+  },
+  {
+   "file": "Q2_0_g64",
+   "engine": "prism",
+   "class": "x86-sse",
+   "ppl": 18.3634
+  },
+  {
+   "file": "PQ2_0",
+   "engine": "prism",
+   "class": "arm-dotprod",
+   "ppl": 18.3701,
+   "ppl_stderr": 1.37116
+  },
+  {
+   "file": "PQ2_0",
+   "engine": "prism",
+   "class": "armv8.0",
+   "ppl": 18.3701
+  },
+  {
+   "file": "PQ2_0",
+   "engine": "prism",
+   "class": "x86-avx2",
+   "ppl": 18.3694
+  },
+  {
+   "file": "PQ2_0",
+   "engine": "prism",
+   "class": "x86-avx1",
+   "ppl": 18.3787
+  },
+  {
+   "file": "PQ2_0",
+   "engine": "prism",
+   "class": "x86-sse",
+   "ppl": 18.3611
+  },
+  {
+   "file": "PQ2_0",
+   "engine": "ik_llama.cpp",
+   "class": "arm-dotprod",
+   "flags": "default",
+   "ppl": 18.3528
+  },
+  {
+   "file": "PQ2_0",
+   "engine": "ik_llama.cpp",
+   "class": "arm-dotprod",
+   "flags": "-rtr",
+   "ppl": 18.3449
+  },
+  {
+   "file": "PQ2_0 -> F16 (exact reference)",
+   "engine": "prism",
+   "class": "arm-dotprod",
+   "ppl": 18.3791
+  }
+ ],
+ "kl_vs_exact_f16_reference": {
+  "class": "arm-dotprod",
+  "rows": [
+   {
+    "file": "Q1_0",
+    "engine": "llama.cpp",
+    "path": "repack",
+    "kld_mean": 0.000224,
+    "kld_mean_err": 7e-06,
+    "kld_max": 0.0065,
+    "kld_p99": 0.0014,
+    "rms_dp_pct": 0.345,
+    "top1_same_pct": 99.31
+   },
+   {
+    "file": "Q1_0",
+    "engine": "llama.cpp",
+    "path": "vec_dot",
+    "kld_mean": 0.000238,
+    "kld_mean_err": 9e-06,
+    "kld_max": 0.0092,
+    "kld_p99": 0.0016,
+    "rms_dp_pct": 0.367,
+    "top1_same_pct": 99.17
+   },
+   {
+    "file": "Q1_0",
+    "engine": "ik_llama.cpp",
+    "flags": "default",
+    "kld_mean": 0.000248,
+    "kld_mean_err": 8e-06,
+    "kld_max": 0.0049,
+    "kld_p99": 0.0017,
+    "rms_dp_pct": 0.38,
+    "top1_same_pct": 99.46
+   },
+   {
+    "file": "Q1_0",
+    "engine": "ik_llama.cpp",
+    "flags": "-rtr",
+    "kld_mean": 0.00045,
+    "kld_mean_err": 1.3e-05,
+    "kld_max": 0.0097,
+    "kld_p99": 0.0028,
+    "rms_dp_pct": 0.51,
+    "top1_same_pct": 98.68
+   },
+   {
+    "file": "PQ2_0",
+    "engine": "prism",
+    "kld_mean": 0.000986,
+    "kld_mean_err": 4.2e-05,
+    "kld_max": 0.0443,
+    "kld_p99": 0.0046,
+    "rms_dp_pct": 0.85,
+    "top1_same_pct": 98.48
+   },
+   {
+    "file": "PQ2_0",
+    "engine": "ik_llama.cpp",
+    "flags": "default",
+    "kld_mean": 0.000946,
+    "kld_mean_err": 2.6e-05,
+    "kld_max": 0.0153,
+    "kld_p99": 0.0054,
+    "rms_dp_pct": 0.72,
+    "top1_same_pct": 98.73
+   },
+   {
+    "file": "PQ2_0",
+    "engine": "ik_llama.cpp",
+    "flags": "-rtr",
+    "kld_mean": 0.000771,
+    "kld_mean_err": 2.3e-05,
+    "kld_max": 0.0225,
+    "kld_p99": 0.0043,
+    "rms_dp_pct": 0.73,
+    "top1_same_pct": 98.58
+   }
+  ]
+ },
+ "kl_between_paths": [
+  {
+   "file": "Q1_0",
+   "a": "llama.cpp arm-dotprod repack",
+   "b": "same build, same path (control)",
+   "kld_mean": 0.0,
+   "kld_max": 5.6e-05,
+   "rms_dp_pct": 0.001,
+   "top1_same_pct": 100.0
+  },
+  {
+   "file": "Q1_0",
+   "a": "llama.cpp arm-dotprod repack",
+   "b": "prism arm-dotprod repack",
+   "kld_mean": 0.0,
+   "kld_max": 5.6e-05,
+   "rms_dp_pct": 0.001,
+   "top1_same_pct": 100.0
+  },
+  {
+   "file": "Q2_0_g64",
+   "a": "llama.cpp arm-dotprod",
+   "b": "prism arm-dotprod",
+   "kld_mean": 0.0,
+   "kld_max": 5.3e-05,
+   "rms_dp_pct": 0.001,
+   "top1_same_pct": 100.0
+  },
+  {
+   "file": "Q1_0",
+   "a": "llama.cpp arm-dotprod repack",
+   "b": "llama.cpp arm-dotprod vec_dot",
+   "kld_mean": 0.000266,
+   "kld_mean_err": 7e-06,
+   "kld_max": 0.003,
+   "kld_p99": 0.0015,
+   "rms_dp_pct": 0.383,
+   "top1_same_pct": 99.17
+  },
+  {
+   "file": "Q1_0",
+   "a": "llama.cpp arm-dotprod",
+   "b": "llama.cpp armv8.0",
+   "kld_mean": 0.00026,
+   "kld_mean_err": 7e-06,
+   "kld_max": 0.0036,
+   "kld_p99": 0.0014,
+   "rms_dp_pct": 0.37,
+   "top1_same_pct": 99.02
+  },
+  {
+   "file": "Q2_0_g64",
+   "a": "llama.cpp arm-dotprod",
+   "b": "llama.cpp armv8.0",
+   "kld_mean": 0.000268,
+   "kld_mean_err": 7e-06,
+   "kld_max": 0.0072,
+   "kld_p99": 0.0014,
+   "rms_dp_pct": 0.41,
+   "top1_same_pct": 99.07
+  },
+  {
+   "file": "Q1_0",
+   "a": "llama.cpp arm-dotprod",
+   "b": "ik_llama.cpp default",
+   "kld_mean": 0.000299,
+   "kld_mean_err": 8e-06,
+   "kld_max": 0.0041,
+   "kld_p99": 0.0016,
+   "rms_dp_pct": 0.4,
+   "top1_same_pct": 99.22
+  },
+  {
+   "file": "Q1_0",
+   "a": "llama.cpp arm-dotprod",
+   "b": "ik_llama.cpp -rtr",
+   "kld_mean": 0.000551,
+   "kld_mean_err": 1.6e-05,
+   "kld_max": 0.0121,
+   "kld_p99": 0.0029,
+   "rms_dp_pct": 0.54,
+   "top1_same_pct": 98.97
+  },
+  {
+   "file": "PQ2_0",
+   "a": "prism arm-dotprod",
+   "b": "ik_llama.cpp default",
+   "kld_mean": 0.001215,
+   "kld_mean_err": 4e-05,
+   "kld_max": 0.0365,
+   "kld_p99": 0.0066,
+   "rms_dp_pct": 0.89,
+   "top1_same_pct": 98.09
+  },
+  {
+   "file": "PQ2_0",
+   "a": "prism arm-dotprod",
+   "b": "ik_llama.cpp -rtr",
+   "kld_mean": 0.001322,
+   "kld_mean_err": 5.1e-05,
+   "kld_max": 0.048,
+   "kld_p99": 0.0082,
+   "rms_dp_pct": 0.98,
+   "top1_same_pct": 97.89
+  }
+ ],
+ "speed": {
+  "class": "arm-dotprod",
+  "command": "llama-bench -p 512 -n 64 -t 2 -r 3",
+  "unit": "tokens/s",
+  "rows": [
+   {
+    "file": "Q1_0",
+    "engine": "llama.cpp",
+    "pp512": 51.8,
+    "pp512_sd": 0.28,
+    "tg64": 14.1,
+    "tg64_sd": 0.08
+   },
+   {
+    "file": "Q1_0",
+    "engine": "prism",
+    "pp512": 51.7,
+    "pp512_sd": 0.09,
+    "tg64": 14.19,
+    "tg64_sd": 0.13
+   },
+   {
+    "file": "Q1_0",
+    "engine": "ik_llama.cpp",
+    "flags": "default",
+    "pp512": 34.85,
+    "pp512_sd": 0.1,
+    "tg64": 14.19,
+    "tg64_sd": 0.23
+   },
+   {
+    "file": "Q1_0",
+    "engine": "ik_llama.cpp",
+    "flags": "-rtr",
+    "pp512": 71.97,
+    "pp512_sd": 0.17,
+    "tg64": 23.29,
+    "tg64_sd": 0.36
+   },
+   {
+    "file": "Q2_0_g64",
+    "engine": "llama.cpp",
+    "pp512": 13.05,
+    "pp512_sd": 0.02,
+    "tg64": 9.94,
+    "tg64_sd": 0.09
+   },
+   {
+    "file": "Q2_0_g64",
+    "engine": "prism",
+    "pp512": 13.05,
+    "pp512_sd": 0.04,
+    "tg64": 10.09,
+    "tg64_sd": 0.06
+   },
+   {
+    "file": "PQ2_0",
+    "engine": "prism",
+    "pp512": 15.34,
+    "pp512_sd": 0.62,
+    "tg64": 11.06,
+    "tg64_sd": 0.3
+   },
+   {
+    "file": "PQ2_0",
+    "engine": "ik_llama.cpp",
+    "flags": "default",
+    "pp512": 6.35,
+    "pp512_sd": 0.01,
+    "tg64": 1.84,
+    "tg64_sd": 0.0
+   },
+   {
+    "file": "PQ2_0",
+    "engine": "ik_llama.cpp",
+    "flags": "-rtr",
+    "pp512": 68.49,
+    "pp512_sd": 0.24,
+    "tg64": 8.1,
+    "tg64_sd": 0.0
+   }
   ],
-  "ppl": [
-    {"file": "Q1_0", "engine": "llama.cpp", "class": "arm-dotprod", "path": "repack q1_0_4x4_q8_0", "ppl": 23.155823, "ppl_stderr": 1.801195},
-    {"file": "Q1_0", "engine": "prism", "class": "arm-dotprod", "path": "repack q1_0_4x4_q8_0", "ppl": 23.155823, "ppl_stderr": 1.801195},
-    {"file": "Q1_0", "engine": "llama.cpp", "class": "arm-dotprod", "path": "vec_dot (--no-repack)", "ppl": 23.1794},
-    {"file": "Q1_0", "engine": "prism", "class": "arm-dotprod", "path": "vec_dot (--no-repack)", "ppl": 23.1794},
-    {"file": "Q1_0", "engine": "llama.cpp", "class": "armv8.0", "ppl": 23.1650},
-    {"file": "Q1_0", "engine": "prism", "class": "armv8.0", "ppl": 23.1650},
-    {"file": "Q1_0", "engine": "llama.cpp", "class": "x86-avx2", "path": "vec_dot (no Q1_0 repack on x86 in llama.cpp)", "ppl": 23.1792},
-    {"file": "Q1_0", "engine": "prism", "class": "x86-avx2", "path": "repack q1_0_4x8_q8_0, Q8_0 activations with one scale per 128", "ppl": 23.1535},
-    {"file": "Q1_0", "engine": "llama.cpp", "class": "x86-avx1", "ppl": 23.1657},
-    {"file": "Q1_0", "engine": "prism", "class": "x86-avx1", "ppl": 23.1657},
-    {"file": "Q1_0", "engine": "llama.cpp", "class": "x86-sse", "ppl": 23.1575},
-    {"file": "Q1_0", "engine": "prism", "class": "x86-sse", "ppl": 23.1575},
-    {"file": "Q1_0", "engine": "ik_llama.cpp", "class": "arm-dotprod", "flags": "default", "ppl": 23.1423},
-    {"file": "Q1_0", "engine": "ik_llama.cpp", "class": "arm-dotprod", "flags": "-rtr", "ppl": 23.1650},
-    {"file": "Q1_0 -> F16 (exact reference)", "engine": "llama.cpp", "class": "arm-dotprod", "ppl": 23.1607},
-
-    {"file": "Q2_0_g64", "engine": "llama.cpp", "class": "arm-dotprod", "ppl": 18.373330, "ppl_stderr": 1.370957},
-    {"file": "Q2_0_g64", "engine": "prism", "class": "arm-dotprod", "ppl": 18.373330, "ppl_stderr": 1.370957},
-    {"file": "Q2_0_g64", "engine": "llama.cpp", "class": "armv8.0", "ppl": 18.3912},
-    {"file": "Q2_0_g64", "engine": "prism", "class": "armv8.0", "ppl": 18.3912},
-    {"file": "Q2_0_g64", "engine": "llama.cpp", "class": "x86-avx2", "ppl": 18.3707},
-    {"file": "Q2_0_g64", "engine": "prism", "class": "x86-avx2", "ppl": 18.3707},
-    {"file": "Q2_0_g64", "engine": "llama.cpp", "class": "x86-avx1", "ppl": 18.3772},
-    {"file": "Q2_0_g64", "engine": "prism", "class": "x86-avx1", "ppl": 18.3772},
-    {"file": "Q2_0_g64", "engine": "llama.cpp", "class": "x86-sse", "ppl": 18.3634},
-    {"file": "Q2_0_g64", "engine": "prism", "class": "x86-sse", "ppl": 18.3634},
-
-    {"file": "PQ2_0", "engine": "prism", "class": "arm-dotprod", "ppl": 18.3701, "ppl_stderr": 1.37116},
-    {"file": "PQ2_0", "engine": "prism", "class": "armv8.0", "ppl": 18.3701},
-    {"file": "PQ2_0", "engine": "prism", "class": "x86-avx2", "ppl": 18.3694},
-    {"file": "PQ2_0", "engine": "prism", "class": "x86-avx1", "ppl": 18.3787},
-    {"file": "PQ2_0", "engine": "prism", "class": "x86-sse", "ppl": 18.3611},
-    {"file": "PQ2_0", "engine": "ik_llama.cpp", "class": "arm-dotprod", "flags": "default", "ppl": 18.3528},
-    {"file": "PQ2_0", "engine": "ik_llama.cpp", "class": "arm-dotprod", "flags": "-rtr", "ppl": 18.3449},
-    {"file": "PQ2_0 -> F16 (exact reference)", "engine": "prism", "class": "arm-dotprod", "ppl": 18.3791}
-  ],
-  "kl_vs_exact_f16_reference": {
-    "class": "arm-dotprod",
-    "rows": [
-      {"file": "Q1_0", "engine": "llama.cpp", "path": "repack", "kld_mean": 0.000224, "kld_mean_err": 0.000007, "kld_max": 0.0065, "kld_p99": 0.0014, "rms_dp_pct": 0.345, "top1_same_pct": 99.31},
-      {"file": "Q1_0", "engine": "llama.cpp", "path": "vec_dot", "kld_mean": 0.000238, "kld_mean_err": 0.000009, "kld_max": 0.0092, "kld_p99": 0.0016, "rms_dp_pct": 0.367, "top1_same_pct": 99.17},
-      {"file": "Q1_0", "engine": "ik_llama.cpp", "flags": "default", "kld_mean": 0.000248, "kld_mean_err": 0.000008, "kld_max": 0.0049, "kld_p99": 0.0017, "rms_dp_pct": 0.38, "top1_same_pct": 99.46},
-      {"file": "Q1_0", "engine": "ik_llama.cpp", "flags": "-rtr", "kld_mean": 0.000450, "kld_mean_err": 0.000013, "kld_max": 0.0097, "kld_p99": 0.0028, "rms_dp_pct": 0.51, "top1_same_pct": 98.68},
-      {"file": "PQ2_0", "engine": "prism", "kld_mean": 0.000986, "kld_mean_err": 0.000042, "kld_max": 0.0443, "kld_p99": 0.0046, "rms_dp_pct": 0.85, "top1_same_pct": 98.48},
-      {"file": "PQ2_0", "engine": "ik_llama.cpp", "flags": "default", "kld_mean": 0.000946, "kld_mean_err": 0.000026, "kld_max": 0.0153, "kld_p99": 0.0054, "rms_dp_pct": 0.72, "top1_same_pct": 98.73},
-      {"file": "PQ2_0", "engine": "ik_llama.cpp", "flags": "-rtr", "kld_mean": 0.000771, "kld_mean_err": 0.000023, "kld_max": 0.0225, "kld_p99": 0.0043, "rms_dp_pct": 0.73, "top1_same_pct": 98.58}
-    ]
+  "note": "One small cloud VM; other processes were running. Treat differences under ~5% as noise."
+ },
+ "notes": [
+  "No divergence above the natural spread between valid code paths in 3 formats x 5 CPU classes x 2 engines (llama.cpp, prism), plus ik_llama.cpp on arm-dotprod. Greedy text identical everywhere.",
+  "The same Q1_0 file gives PPL 23.1535-23.1794 (0.11%) depending on which code path the engine picks for the CPU; both paths are the same distance from the exact F16 reference. PPL alone cannot tell a correct path from a wrong one at this scale.",
+  "The natural spread depends on the type: Q1_0 ~2-3e-4 KLD vs the exact reference; PQ2_0 ~1e-3. ik_llama.cpp vs prism on PQ2_0 is ~1.2e-3 because both are ~0.8-1.0e-3 from the reference in different directions.",
+  "KL was measured only on the ARM classes; on x86 only PPL and greedy text."
+ ],
+ "x86_reproduction": {
+  "cpu": {
+   "class": "x86_64 AVX2",
+   "model": "Intel Xeon @ 2.20GHz",
+   "vcpus": 4
   },
-  "kl_between_paths": [
-    {"file": "Q1_0", "a": "llama.cpp arm-dotprod repack", "b": "same build, same path (control)", "kld_mean": 0.0, "kld_max": 0.000056, "rms_dp_pct": 0.001, "top1_same_pct": 100.0},
-    {"file": "Q1_0", "a": "llama.cpp arm-dotprod repack", "b": "prism arm-dotprod repack", "kld_mean": 0.0, "kld_max": 0.000056, "rms_dp_pct": 0.001, "top1_same_pct": 100.0},
-    {"file": "Q2_0_g64", "a": "llama.cpp arm-dotprod", "b": "prism arm-dotprod", "kld_mean": 0.0, "kld_max": 0.000053, "rms_dp_pct": 0.001, "top1_same_pct": 100.0},
-    {"file": "Q1_0", "a": "llama.cpp arm-dotprod repack", "b": "llama.cpp arm-dotprod vec_dot", "kld_mean": 0.000266, "kld_mean_err": 0.000007, "kld_max": 0.0030, "kld_p99": 0.0015, "rms_dp_pct": 0.383, "top1_same_pct": 99.17},
-    {"file": "Q1_0", "a": "llama.cpp arm-dotprod", "b": "llama.cpp armv8.0", "kld_mean": 0.000260, "kld_mean_err": 0.000007, "kld_max": 0.0036, "kld_p99": 0.0014, "rms_dp_pct": 0.37, "top1_same_pct": 99.02},
-    {"file": "Q2_0_g64", "a": "llama.cpp arm-dotprod", "b": "llama.cpp armv8.0", "kld_mean": 0.000268, "kld_mean_err": 0.000007, "kld_max": 0.0072, "kld_p99": 0.0014, "rms_dp_pct": 0.41, "top1_same_pct": 99.07},
-    {"file": "Q1_0", "a": "llama.cpp arm-dotprod", "b": "ik_llama.cpp default", "kld_mean": 0.000299, "kld_mean_err": 0.000008, "kld_max": 0.0041, "kld_p99": 0.0016, "rms_dp_pct": 0.40, "top1_same_pct": 99.22},
-    {"file": "Q1_0", "a": "llama.cpp arm-dotprod", "b": "ik_llama.cpp -rtr", "kld_mean": 0.000551, "kld_mean_err": 0.000016, "kld_max": 0.0121, "kld_p99": 0.0029, "rms_dp_pct": 0.54, "top1_same_pct": 98.97},
-    {"file": "PQ2_0", "a": "prism arm-dotprod", "b": "ik_llama.cpp default", "kld_mean": 0.001215, "kld_mean_err": 0.000040, "kld_max": 0.0365, "kld_p99": 0.0066, "rms_dp_pct": 0.89, "top1_same_pct": 98.09},
-    {"file": "PQ2_0", "a": "prism arm-dotprod", "b": "ik_llama.cpp -rtr", "kld_mean": 0.001322, "kld_mean_err": 0.000051, "kld_max": 0.0480, "kld_p99": 0.0082, "rms_dp_pct": 0.98, "top1_same_pct": 97.89}
-  ],
-  "speed": {
-    "class": "arm-dotprod",
-    "command": "llama-bench -p 512 -n 64 -t 2 -r 3",
-    "unit": "tokens/s",
-    "rows": [
-      {"file": "Q1_0", "engine": "llama.cpp", "pp512": 51.80, "pp512_sd": 0.28, "tg64": 14.10, "tg64_sd": 0.08},
-      {"file": "Q1_0", "engine": "prism", "pp512": 51.70, "pp512_sd": 0.09, "tg64": 14.19, "tg64_sd": 0.13},
-      {"file": "Q1_0", "engine": "ik_llama.cpp", "flags": "default", "pp512": 34.85, "pp512_sd": 0.10, "tg64": 14.19, "tg64_sd": 0.23},
-      {"file": "Q1_0", "engine": "ik_llama.cpp", "flags": "-rtr", "pp512": 71.97, "pp512_sd": 0.17, "tg64": 23.29, "tg64_sd": 0.36},
-      {"file": "Q2_0_g64", "engine": "llama.cpp", "pp512": 13.05, "pp512_sd": 0.02, "tg64": 9.94, "tg64_sd": 0.09},
-      {"file": "Q2_0_g64", "engine": "prism", "pp512": 13.05, "pp512_sd": 0.04, "tg64": 10.09, "tg64_sd": 0.06},
-      {"file": "PQ2_0", "engine": "prism", "pp512": 15.34, "pp512_sd": 0.62, "tg64": 11.06, "tg64_sd": 0.30},
-      {"file": "PQ2_0", "engine": "ik_llama.cpp", "flags": "default", "pp512": 6.35, "pp512_sd": 0.01, "tg64": 1.84, "tg64_sd": 0.00},
-      {"file": "PQ2_0", "engine": "ik_llama.cpp", "flags": "-rtr", "pp512": 68.49, "pp512_sd": 0.24, "tg64": 8.10, "tg64_sd": 0.00}
-    ],
-    "note": "One small cloud VM; other processes were running. Treat differences under ~5% as noise."
+  "compiler": "gcc 13.3.0",
+  "threads": 2,
+  "source": "scripts/run.sh quick at repo commit 1dce612",
+  "ppl": {
+   "llama-q1_0": 23.1792,
+   "prism-q1_0": 23.1535,
+   "ik-q1_0": 23.155,
+   "ik-rtr-q1_0": 23.1762,
+   "llama-q2_0_g64": 18.3723,
+   "prism-q2_0_g64": 18.3723,
+   "prism-pq2_0": 18.3694,
+   "ik-pq2_0": 18.3611,
+   "ik-rtr-pq2_0": 18.366,
+   "f16-from-q1_0": 23.1708,
+   "f16-from-pq2_0": 18.3764
+  },
+  "kl_vs_exact_f16": {
+   "llama-q1_0": 0.000215,
+   "llama-q1_0-vecdot": 0.000215,
+   "ik-q1_0": 0.00022,
+   "ik-rtr-q1_0": 0.000419,
+   "prism-pq2_0": 0.001016,
+   "ik-pq2_0": 0.00095,
+   "ik-rtr-pq2_0": 0.000754
+  },
+  "speed_tps_pp512_tg64": {
+   "llama-q1_0": [
+    22.47,
+    15.98
+   ],
+   "prism-q1_0": [
+    38.36,
+    18.31
+   ],
+   "ik-q1_0": [
+    31.21,
+    17.27
+   ],
+   "ik-rtr-q1_0": [
+    75.93,
+    23.59
+   ],
+   "llama-q2_0_g64": [
+    2.1,
+    1.61
+   ],
+   "prism-q2_0_g64": [
+    2.1,
+    1.6
+   ],
+   "prism-pq2_0": [
+    27.79,
+    12.89
+   ],
+   "ik-pq2_0": [
+    12.02,
+    12.87
+   ],
+   "ik-rtr-pq2_0": [
+    71.37,
+    17.25
+   ]
   },
   "notes": [
-    "No divergence above the natural spread between valid code paths in 3 formats x 5 CPU classes x 2 engines (llama.cpp, prism), plus ik_llama.cpp on arm-dotprod. Greedy text identical everywhere.",
-    "The same Q1_0 file gives PPL 23.1535-23.1794 (0.11%) depending on which code path the engine picks for the CPU; both paths are the same distance from the exact F16 reference. PPL alone cannot tell a correct path from a wrong one at this scale.",
-    "The natural spread depends on the type: Q1_0 ~2-3e-4 KLD vs the exact reference; PQ2_0 ~1e-3. ik_llama.cpp vs prism on PQ2_0 is ~1.2e-3 because both are ~0.8-1.0e-3 from the reference in different directions.",
-    "KL was measured only on the ARM classes; on x86 only PPL and greedy text."
+   "llama-q1_0 and llama-q1_0-vecdot give the same KL on x86-64: llama.cpp has no Q1_0 repack there, so both runs use vec_dot.",
+   "Q2_0 has no SIMD kernel on x86-64 at these commits (generic C): 18.3723 here vs 18.3707 on AMD EPYC 7B12, compiler vectorization differs per CPU; ~13x slower prompt processing than PQ2_0. llama.cpp merged an AVX2 Q2_0 kernel on 2026-10-13 (#30447).",
+   "Greedy text identical to aarch64 for all files and runtimes; load matrix identical (ik also refuses the legacy Q2_0)."
   ]
+ }
 }

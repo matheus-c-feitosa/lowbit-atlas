@@ -2,7 +2,7 @@
 
 By [Matheus Feitosa](https://github.com/matheus-c-feitosa) · October 2026
 
-> **First edition, October 2026.** Measurements and from-scratch reproduction done on aarch64. The from-scratch reproduction with these scripts on x86-64 is in progress; this note will be updated with the result.
+> **First edition, October 2026.** Measured, and reproduced from scratch with the scripts in this repository, on aarch64 (Neoverse-N1) and x86-64 (Intel Xeon, AVX2).
 
 An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`), and `scripts/` rebuilds and reruns it.
 
@@ -13,7 +13,7 @@ An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For ea
    - On aarch64 the output is garbage (`????`) since commit `112f853`, Nov 2025 ([#470](https://github.com/microsoft/BitNet/issues/470)).
    - Fixes have been proposed but **none is merged**. We tested them against a reference: on current main, **only the activation fix from #588 gives correct output** (plus isHuangXin/llama.cpp#2 on aarch64). It can be applied either as a one-line change or, safely for the other BitNet models, through [#605](https://github.com/microsoft/BitNet/pull/605) plus a runtime key. Two other proposed fixes do not reach the code that runs. See [BitNet](#bitnet-b158-2b-4t-which-fix-actually-works).
 2. **The Bonsai family (Prism) runs correctly** in llama.cpp and the Prism fork on every CPU class tested, and in ik_llama.cpp where tested. The differences are in **speed** and in **which file loads where**: the file marked "recommended" on one model card does not load in any of the three runtimes.
-3. **Speed depends on the format × CPU × runtime path, not on file size.** The smallest 27B file is ~6× slower to process prompts on AVX2 x86. ik_llama.cpp with `-rtr` is the fastest in most cases measured (not for PQ2_0 generation on aarch64), and `-rtr` is off by default: without it, ik_llama.cpp is often the slowest.
+3. **Speed depends on the format × CPU × runtime path, not on file size.** The smallest 27B file is ~6× slower to process prompts on AVX2 x86. ik_llama.cpp with `-rtr` is the fastest in most cases measured (not for PQ2_0 generation on aarch64), and `-rtr` is off by default: without it, ik_llama.cpp is often the slowest. On x86-64 at the measured commits, Q2_0 has no SIMD kernel at all, so the Ternary-Bonsai-1.7B Q2_0 g64 file processes prompts ~13× slower than its PQ2_0 version. llama.cpp merged an AVX2 kernel for it on 2026-10-13, after these measurements.
 
 ## BitNet-b1.58-2B-4T: which fix actually works
 
@@ -29,10 +29,10 @@ Same official GGUF (`ggml-model-i2_s.gguf`, sha256 `4221b252…`) and the same 4
 | **main + the one-line fix from #588** | x86-64 AVX2 | "Paris. Paris is a city that is known for its rich" | **18.87** | **+0.39% — correct** |
 | main + llama.cpp#2 + the #588 line (same recipe as aarch64) | x86-64 AVX2 | same | 18.87 | identical to the line above: one recipe for both |
 | main + llama.cpp#2 + [#605](https://github.com/microsoft/BitNet/pull/605), file as published | aarch64 | "a small city, and…" | — | still wrong: files without the activation key keep SiLU |
-| **main + llama.cpp#2 + #605, run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`** | aarch64 | "Paris. Paris is a city that is known for its rich" | **18.84** | **+0.27% — correct**, identical to the one-line fix; files without the key keep SiLU |
+| **main + llama.cpp#2 + #605, run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`** | aarch64 / x86-64 | "Paris. Paris is a city that is known for its rich" | **18.84 / 18.87** | **+0.27% / +0.39% — correct**, identical to the one-line fix; files without the key keep SiLU |
 | main + [#633](https://github.com/microsoft/BitNet/pull/633) | aarch64 | `????????????` | — | no effect: edits a file current main does not compile |
 | [#586](https://github.com/microsoft/BitNet/pull/586) on its own base (`01eb415`, Mar 2026) | aarch64 | "Paris. Paris is a city…" | 18.85 | correct, but does not apply to current main (same reason) |
-| bitnet.cpp `404980e` (June 2025) | aarch64 / x86-64 | "Paris. Paris is a city…" | 18.85 / 18.81 | correct (before the regression) |
+| bitnet.cpp `404980e` (June 2025) | aarch64 / x86-64 | "Paris. Paris is a city…" | 18.85 / 18.81 (clang), 18.84 (gcc) | correct (before the regression) |
 | **ik_llama.cpp `04b4ebc`** (file converted to `iq2_bn_r4`, as [ik#387](https://github.com/ikawrakow/ik_llama.cpp/issues/387) documents) | aarch64 / x86-64 | "Paris. Paris is a city…" | **18.81 / 18.85** | **correct** |
 
 All correct implementations land within +0.1–0.4% of the reference. A GGUF runtime quantizes activations to 8 bits and the reference runs in float32, so a small positive offset is expected. The wrong one is at +503%.
@@ -51,7 +51,7 @@ The results are identical to the fourth decimal on a different machine, so the t
 **What to use today:**
 
 - **Easiest:** ik_llama.cpp. Convert the file once with `llama-quantize --allow-requantize ggml-model-i2_s.gguf out.gguf iq2_bn_r4`. Measured correct on aarch64 and x86-64.
-- **bitnet.cpp, safe for every BitNet model:** apply #605 (on aarch64, also isHuangXin/llama.cpp#2), and run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`. Files without that key keep SiLU, so by design the older 1bitLLM models (`bitnet_b1_58-large`, `-3B`), which share the architecture and do use SiLU, should not be affected. Those models were not tested here. `scripts/build.sh bitnet-605` builds this. Measured on aarch64; the x86-64 run is pending.
+- **bitnet.cpp, safe for every BitNet model:** apply #605 (on aarch64, also isHuangXin/llama.cpp#2), and run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`. Files without that key keep SiLU, so by design the older 1bitLLM models (`bitnet_b1_58-large`, `-3B`), which share the architecture and do use SiLU, should not be affected. Those models were not tested here. `scripts/build.sh bitnet-605` builds this. Measured on aarch64 (18.84) and x86-64 (18.87).
 - **bitnet.cpp, quickest, but only for BitNet-b1.58-2B-4T:** the one-line change from #588 (`LLM_FFN_SILU` → `LLM_FFN_RELU_SQR` in `3rdparty/llama.cpp/src/models/bitnet.cpp`; on aarch64, plus isHuangXin/llama.cpp#2). It switches every model of this architecture to ReLU², so **it breaks the 1bitLLM models**. That is why the same change was not accepted in llama.cpp, as discussed in #588. `scripts/build.sh bitnet-fixed` builds this.
 - **Tokenizer:** the published GGUF has no `tokenizer.ggml.pre`, so llama.cpp-based runtimes fall back to a default pre-tokenizer and produce ~16% more tokens than the HF tokenizer. Adding `--override-kv tokenizer.ggml.pre=str:llama-bpe` makes the tokenization match the model's own tokenizer (checked in #588). Perplexities on different tokenizations are not directly comparable (19.60 vs 16.78 in our rerun of the #588 protocol), so the tables above keep the default tokenization and score every runtime on identical tokens.
 
@@ -71,7 +71,7 @@ Three formats (PQ2_0 loads only in Prism) × five CPU classes × llama.cpp and t
 
 - Kernel tests: `test-backend-ops` 0 failures (llama.cpp 310/310, Prism 833/833) in every class.
 - Perplexity spread across classes and runtimes is ≤ 0.15%, within the spread between valid code paths (see [METHOD](METHOD.md#5-pitfalls-found-along-the-way)). Greedy text is identical everywhere.
-- KL against an exact F16 reference (aarch64 NEON+dotprod) puts llama.cpp, Prism and ik_llama.cpp at the type's natural spread (Q1_0 ~2.2–2.5e-4, PQ2_0 ~0.8–1.0e-3). One case sits at the edge: ik_llama.cpp **with `-rtr`** on Q1_0 is 2.0× farther than the best path (4.5e-4, same top-1 98.7%). It quantizes activations differently (`Q8_K128`). Greedy text is unchanged, and it is not counted as a divergence, but it is the closest to the line.
+- KL against an exact F16 reference puts llama.cpp, Prism and ik_llama.cpp at the type's natural spread, with the same pattern on aarch64 and x86-64 (Q1_0 ~2.1–2.5e-4, PQ2_0 ~0.75–1.0e-3). One case sits at the edge: ik_llama.cpp **with `-rtr`** on Q1_0 is ~2× farther than the best path (4.5e-4 on aarch64, same top-1 98.7%; 4.2e-4 on x86-64). It quantizes activations differently (`Q8_K128`). Greedy text is unchanged, and it is not counted as a divergence, but it is the closest to the line.
 
 **Which file loads where:**
 
@@ -90,6 +90,16 @@ The legacy Q2_0 file problem was already reported (PrismML-Eng/llama.cpp#167, Te
 |---|---|---|---|---|
 | Q1_0 | 51.8 / 14.1 | 51.7 / 14.2 | 34.9 / 14.2 | **72.0 / 23.3** |
 | PQ2_0 | — | 15.3 / 11.1 | 6.4 / 1.8 | **68.5** / 8.1 |
+
+**Speed** (x86-64 Intel Xeon @ 2.2 GHz, AVX2, hosted VM with 4 vCPUs, 2 threads, same `llama-bench` command, tokens/s):
+
+| File | llama.cpp | Prism | ik_llama.cpp | ik_llama.cpp `-rtr` |
+|---|---|---|---|---|
+| Q1_0 | 22.5 / 16.0 | 38.4 / 18.3 | 31.2 / 17.3 | **75.9 / 23.6** |
+| Q2_0 g64 | 2.1 / 1.6 | 2.1 / 1.6 | — | — |
+| PQ2_0 | — | 27.8 / 12.9 | 12.0 / 12.9 | **71.4 / 17.3** |
+
+On x86-64 at these commits, llama.cpp has no repacked path for Q1_0, while Prism does. Neither runtime has a SIMD kernel for Q2_0: it runs generic C code, ~13× slower than PQ2_0. An AVX2 Q2_0 kernel was merged into llama.cpp on 2026-10-13 (ggml-org/llama.cpp#30447, about 8–9× faster according to its author); it is not measured here.
 
 ## Ternary-Bonsai-2 27B (Prism): correct, speed depends on the file
 
@@ -115,7 +125,12 @@ scripts/compare.py work/results.jsonl   # SAME / CLOSE / DIFFERS vs the numbers 
 
 Every input is pinned: runtime commits, model files (revision and sha256) and WikiText-2. `run.sh` records each measurement with the CPU, the runtime and submodule commits, and the flags.
 
-**Reproduced from scratch on aarch64** (Neoverse-N1, clang 18, 2026-10-11): all builds, then `run.sh quick` in about 2 h. Result: **43 of 43** comparable measurements came out SAME (greedy text, perplexity, KL, which file loads where). Speed is not judged: prompt processing came within 2.5% of the published numbers, generation within 10%. A from-scratch run on x86-64 is pending.
+**Reproduced from scratch on aarch64** (Neoverse-N1, clang 18, 2026-10-11): all builds, then `run.sh quick` in about 2 h. Result: **43 of 43** comparable measurements came out SAME (greedy text, perplexity, KL, which file loads where). Speed is not judged: prompt processing came within 2.5% of the published numbers, generation within 10%.
+
+**Reproduced from scratch on x86-64** (hosted VM, Intel Xeon @ 2.2 GHz, gcc 13.3, right after publication): 32 SAME, 3 CLOSE, 0 DIFFERS, plus 13 measurements that were new on x86-64 and are now part of `compare.py`. The 3 CLOSE are within the spread between valid code paths:
+
+- Q2_0 g64 in llama.cpp and Prism gave 18.3723, against 18.3707 on the AMD EPYC used before. On x86-64 this type runs generic C code, which the compiler vectorizes differently for each CPU.
+- bitnet.cpp June 2025 gave 18.8431 with gcc, against 18.8137 with clang.
 
 ## Feedback
 
@@ -126,7 +141,7 @@ Found an error, or have a CPU, runtime or model file that is not covered here? P
 - One file per format, 512-token context, English text, 8 windows (2 for the 27B model).
 - Real hardware: aarch64 Neoverse-N1 and x86-64 AVX2 (Intel Xeon @ 2.2 GHz, AMD EPYC 7B12). The older classes were emulated with build flags.
 - No GPU, AVX-512, Arm i8mm/SVE or Apple Silicon.
-- KL against an exact reference was measured on aarch64 only. On x86-64: PPL, greedy text, and KL between runtimes for the 27B model. For BitNet, only PPL was compared with the HF reference, not KL.
+- KL against an exact reference: Bonsai 1.7B on aarch64 and x86-64; 27B only between runtimes (x86-64). For BitNet, only PPL was compared with the HF reference, not KL.
 - Runtimes move fast: the linked issues may have changed since October 2026.
 
 ## AI assistance

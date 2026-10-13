@@ -36,6 +36,10 @@ PPL = {
         "bitnet-fixed": 18.8676, "bitnet-2025-06": 18.8137,
         "bitnet-605": 18.8676,  # expected = fixed; not yet measured on x86
         "ik-bitnet": 18.8519, "prism-27b-ptq1_0": 8.7507,
+        # first measured by run.sh on x86-64 (Intel Xeon, gcc 13.3)
+        "ik-q1_0": 23.155, "ik-pq2_0": 18.3611, "ik-rtr-q1_0": 23.1762,
+        "ik-rtr-pq2_0": 18.366, "llama-f16-from-q1_0": 23.1708,
+        "prism-f16-from-pq2_0": 18.3764,
         "prism-27b-pq2_0": 8.7515, "ik-rtr-27b-ptq1_0": 8.7552,
     },
 }
@@ -69,7 +73,13 @@ KLD = {
         "kl-prism-pq2_0": 0.000986, "kl-ik-pq2_0": 0.000946,
         "kl-ik-rtr-pq2_0": 0.000771,
     },
-    "x86_64": {"kl-ik-27b-pq2_0": 0.000261, "kl-ik-rtr-27b-pq2_0": 0.000212},
+    "x86_64": {
+        "kl-ik-27b-pq2_0": 0.000261, "kl-ik-rtr-27b-pq2_0": 0.000212,
+        "kl-llama-q1_0": 0.000215, "kl-llama-q1_0-vecdot": 0.000215,
+        "kl-ik-q1_0": 0.000220, "kl-ik-rtr-q1_0": 0.000419,
+        "kl-prism-pq2_0": 0.001016, "kl-ik-pq2_0": 0.000950,
+        "kl-ik-rtr-pq2_0": 0.000754,
+    },
 }
 TEXT = {
     "q1_0": " Paris, and the capital of Spain is",

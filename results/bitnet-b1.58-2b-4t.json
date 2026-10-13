@@ -484,6 +484,37 @@
    },
    "compiler": "clang 18.1.3",
    "build": "codegen_tl2 as setup_env.py; -DBITNET_X86_TL2=OFF"
+  },
+  {
+   "id": "bitnetcpp-x86-605-key",
+   "engine": "bitnet.cpp + isHuangXin/llama.cpp#2 + microsoft/BitNet#605, run with --override-kv bitnet-b1.58.hidden_activation=str:relu2",
+   "commit": "0b341e582afbf9e1011f24744b554c96a3477eb5",
+   "submodule": "8000be4 + cherry-pick 1d75155fcc8e882c9585f733704153784cddae04",
+   "cpu": {
+    "class": "x86_64 AVX2",
+    "model": "Intel Xeon @ 2.20GHz",
+    "vcpus": 4
+   },
+   "compiler": "gcc 13.3.0",
+   "build": "scripts/build.sh bitnet-605",
+   "ppl": 18.8676,
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "source": "scripts/run.sh quick, from-scratch reproduction"
+  },
+  {
+   "id": "bitnetcpp-x86-2025-06-gcc",
+   "engine": "bitnet.cpp (June 2025)",
+   "commit": "404980eecae38affa4871c3e419eae3f44536a95",
+   "cpu": {
+    "class": "x86_64 AVX2",
+    "model": "Intel Xeon @ 2.20GHz",
+    "vcpus": 4
+   },
+   "compiler": "gcc 13.3.0",
+   "build": "scripts/build.sh bitnet-2025-06",
+   "ppl": 18.8431,
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "note": "18.8137 with clang 18 on the same CPU class: this older kernel is compiler-sensitive (0.16%), within the spread between valid paths"
   }
  ],
  "notes": [
@@ -523,5 +554,17 @@
    }
   ],
   "reading": "Identical to the fourth decimal and in the standard error, on a different machine: the two measurements confirm each other."
+ },
+ "reproduction_x86": {
+  "cpu": {
+   "class": "x86_64 AVX2",
+   "model": "Intel Xeon @ 2.20GHz",
+   "vcpus": 4
+  },
+  "compiler": "gcc 13.3.0",
+  "repo_commit": "1dce612",
+  "compare": "32 SAME, 3 CLOSE, 0 DIFFERS, 13 NEW (all records, both models)",
+  "build_s": 2370,
+  "run_quick_s": 11556
  }
 }
