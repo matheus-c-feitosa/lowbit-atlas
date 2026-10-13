@@ -4,8 +4,8 @@
 #
 #   scripts/build.sh all          # once: build the runtimes
 #   scripts/run.sh quick          # BitNet 2B4T + Bonsai 1.7B (~1-2 h)
-#   scripts/run.sh full           # + Ternary-Bonsai-2 27B (needs >= 16 GB RAM;
-#                                 # not yet run end to end)
+#   scripts/run.sh full           # + Ternary-Bonsai-2 27B (needs >= 16 GB RAM)
+#   scripts/run.sh 27b            # only the 27B part (needs prism and ik)
 #
 # Every measurement is appended to $OUT ($WORK/results.jsonl) with the
 # CPU, runtime commit, model file and flags; logs go to $WORK/logs/.
@@ -15,13 +15,14 @@
 . "$(dirname "$0")/measure.sh"
 
 MODE=${1:-}
-[ "$MODE" = quick ] || [ "$MODE" = full ] || die "usage: $0 quick|full"
+case $MODE in quick|full|27b) ;; *) die "usage: $0 quick|full|27b" ;; esac
 
 SRC=$WORK/src
 LL=$SRC/llama.cpp/build/bin
 PR=$SRC/prism/build/bin
 IK=$SRC/ik_llama.cpp/build/bin
-for b in "$LL" "$PR" "$IK"; do
+NEED=("$LL" "$PR" "$IK"); [ "$MODE" = 27b ] && NEED=("$PR" "$IK")
+for b in "${NEED[@]}"; do
   [ -x "$b/llama-perplexity" ] || die "missing $b: run scripts/build.sh all"
 done
 FR="The capital of France is"
@@ -54,6 +55,7 @@ sys.exit(0 if ("????" in text or "!!!!" in text or not text.strip()) else 1)
 EOF
 }
 
+if [ "$MODE" != 27b ]; then
 # ---------------------------------------------------------------- Bonsai 1.7B
 for m in bonsai-q1_0 ternary-q2_0_g64 ternary-pq2_0 ternary-q2_0_legacy; do
   fetch_model "$m"
@@ -145,8 +147,11 @@ IKBN=$WORK/models/bitnet-iq2_bn_r4-ik.gguf
 m_greedy ik-bitnet "$IK" "$IKBN" 12 "$FR"
 m_ppl ik-bitnet "$IK" "$IKBN" 8
 
-# ---------------------------------------------------------- 27B (full only)
-if [ "$MODE" = full ]; then
+fi # quick part
+
+# ---------------------------------------------------- 27B (full and 27b)
+if [ "$MODE" = full ] || [ "$MODE" = 27b ]; then
+  fetch_wikitext; mkdir -p "$WORK/logs" "$WORK/kld"
   fetch_model t27b-ptq1_0; fetch_model t27b-pq2_0
   PT=$(model_path t27b-ptq1_0); P2=$(model_path t27b-pq2_0)
   for f in ptq1_0:$PT pq2_0:$P2; do

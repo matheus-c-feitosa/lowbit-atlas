@@ -123,6 +123,7 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 ```bash
 WORK=$PWD/work scripts/build.sh all     # llama.cpp, Prism, ik_llama.cpp, 3 bitnet.cpp variants
 WORK=$PWD/work scripts/run.sh quick     # BitNet + Bonsai 1.7B; "full" adds the 27B (>= 16 GB RAM, not yet run end to end)
+                                        # "27b" runs only the 27B part (needs prism and ik)
 scripts/compare.py work/results.jsonl   # SAME / CLOSE / DIFFERS vs the numbers published here
 ```
 
