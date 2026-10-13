@@ -66,7 +66,7 @@ The natural spread **depends on the type**: ~2–3e-4 for Q1_0 and ~1e-3 for PQ2
 
 **5.5 Build flags change which kernels run.**
 
-- With clang, `-march=native` does not enable dotprod on aarch64, and ik_llama.cpp then silently drops its optimized kernels (ikawrakow/ik_llama.cpp#361); gcc does enable it. `-mcpu=native` works with both.
+- With clang, `-march=native` does not enable dotprod on aarch64, and ik_llama.cpp then silently drops its optimized kernels (ikawrakow/ik_llama.cpp#361); gcc does enable it. `-mcpu=native` works with both. The ik_llama.cpp maintainer recommends passing it as `-DGGML_NATIVE=OFF -DGGML_ARCH_FLAGS=-mcpu=native` (ik_llama.cpp#2651), which `build.sh` uses; it gives identical results.
 - In ik_llama.cpp, run-time repacking (`-rtr`) changes speed by up to ~10× and is not the default.
 
 **5.6 File size does not predict speed.** What matters is whether the runtime has a repacked or GEMM path for that type on that CPU. Without one, prompt processing runs close to generation speed (pp/tg ≈ 1.3). The smaller Ternary-Bonsai-2-27B file (PTQ1_0) is about 6× slower than the larger one (PQ2_0) for prompt processing on AVX2 x86 (PrismML-Eng/llama.cpp#324).

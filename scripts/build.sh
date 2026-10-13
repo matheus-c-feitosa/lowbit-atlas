@@ -35,9 +35,9 @@ build_ik() {
   if [ "$ARCH" = aarch64 ]; then
     # With clang, -march=native does not enable dotprod on aarch64, and
     # without it ik_llama.cpp drops its optimized kernels
-    # (ikawrakow/ik_llama.cpp#361). -mcpu=native does.
-    flags=(-DGGML_NATIVE=OFF -DCMAKE_C_FLAGS=-mcpu=native
-           -DCMAKE_CXX_FLAGS=-mcpu=native)
+    # (ikawrakow/ik_llama.cpp#361). -mcpu=native does; GGML_ARCH_FLAGS is
+    # the way the maintainer recommends passing it (ik_llama.cpp#2651).
+    flags=(-DGGML_NATIVE=OFF -DGGML_ARCH_FLAGS=-mcpu=native)
   else
     flags=(-DGGML_NATIVE=ON)
   fi
