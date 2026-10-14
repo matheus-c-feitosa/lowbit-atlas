@@ -2,7 +2,7 @@
 
 By [Matheus Feitosa](https://github.com/matheus-c-feitosa) · October 2026
 
-> **First edition, October 2026.** Measured, and reproduced from scratch with the scripts in this repository, on aarch64 (Neoverse-N1) and x86-64 (Intel Xeon, AVX2).
+> **First edition, October 2026.** Measured, and reproduced from scratch with the scripts in this repository, on aarch64 (Neoverse-N1) and x86-64 (Intel Xeon, AVX2). Last updated 2026-10-14 ([changelog](#changelog)).
 
 An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`), and `scripts/` rebuilds and reruns it.
 
@@ -197,6 +197,26 @@ Run the notebook or the commands above, then [share your results](https://github
 ## Feedback
 
 Found an error, or have a CPU, runtime or model file that is not covered here? Please open an issue in this repository. Include the runtime commit, the CPU (`lscpu` on Linux), the file, and the exact command and output. Corrections are especially welcome: if one of the linked fixes gets merged, or a number here does not reproduce, the report will be updated and the change credited.
+
+## Changelog
+
+The full history is in the commit log.
+
+- **2026-10-14**
+  - **Correction:** in Prism on AVX2 x86-64, the 27B PTQ1_0 file is ~4.4× slower than PQ2_0 for prompt processing and ~2.4× for generation, remeasured with `llama-bench` with both files in one session. The first edition said ~6×, from `llama-completion` timings. The correction was also posted where the old number had been shared ([Ternary-Bonsai-27B-gguf #51](https://huggingface.co/prism-ml/Ternary-Bonsai-27B-gguf/discussions/51#6acfebf1739131619819a7f8)).
+  - Added: [What to use today](#what-to-use-today); `run.sh check` (a ~30 min subset with the same protocol) and a browser notebook for Kaggle or Colab; a [results form](https://github.com/matheus-c-feitosa/lowbit-atlas/issues/new?template=results.yml) for new CPUs.
+  - Added: microsoft/BitNet#642, both versions, on aarch64 (below).
+  - The 27B part reproduced from scratch on x86-64: 5 of 5 SAME.
+- **2026-10-13**
+  - x86-64 reproduction from scratch: 32 SAME, 3 CLOSE, 0 DIFFERS.
+  - Q2_0 on x86-64: the new AVX2 kernel in llama.cpp (ggml-org/llama.cpp#30447) measured before and after.
+- **2026-10-11:** first edition, reproduced from scratch on aarch64 (all 43 comparable measurements SAME).
+
+**Follow-ups in other projects.** What changed after a result from this report was posted there. A follow-up is not a merge: check the links for the current state.
+
+- **microsoft/BitNet#642** (IshekKhal): the first version had no effect on aarch64 as it would be merged, and gave garbage with its patch applied ([test](https://github.com/microsoft/BitNet/pull/642#issuecomment-6173981334)). The author updated the PR the same day ([reply](https://github.com/microsoft/BitNet/pull/642#issuecomment-6175337567)). The updated version (`241ce30`) is correct on aarch64 with a static build, but does not link with shared libraries, the default of `setup_env.py` ([retest](https://github.com/microsoft/BitNet/pull/642#issuecomment-6176911694)). Not merged; not measured on x86-64.
+- **microsoft/BitNet#633** (uno-km): updated after the first test (`899b738`). The [retest](https://github.com/microsoft/BitNet/pull/633#issuecomment-6097867561) still printed `????` on aarch64: the file it changes is not compiled on current main. Not merged.
+- **ikawrakow/ik_llama.cpp#2651:** the maintainer recommended `-DGGML_NATIVE=OFF -DGGML_ARCH_FLAGS=-mcpu=native` for clang on aarch64. `build.sh` has used it since 2026-10-13, with identical results.
 
 ## Limitations
 
