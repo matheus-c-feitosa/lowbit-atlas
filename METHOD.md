@@ -69,7 +69,7 @@ The natural spread **depends on the type**: ~2–3e-4 for Q1_0 and ~1e-3 for PQ2
 - With clang, `-march=native` does not enable dotprod on aarch64, and ik_llama.cpp then silently drops its optimized kernels (ikawrakow/ik_llama.cpp#361); gcc does enable it. `-mcpu=native` works with both. The ik_llama.cpp maintainer recommends passing it as `-DGGML_NATIVE=OFF -DGGML_ARCH_FLAGS=-mcpu=native` (ik_llama.cpp#2651), which `build.sh` uses; it gives identical results.
 - In ik_llama.cpp, run-time repacking (`-rtr`) changes speed by up to ~10× and is not the default.
 
-**5.6 File size does not predict speed.** What matters is whether the runtime has a repacked or GEMM path for that type on that CPU. Without one, prompt processing runs close to generation speed (pp/tg ≈ 1.3). The smaller Ternary-Bonsai-2-27B file (PTQ1_0) is about 6× slower than the larger one (PQ2_0) for prompt processing on AVX2 x86 (PrismML-Eng/llama.cpp#324).
+**5.6 File size does not predict speed.** What matters is whether the runtime has a repacked or GEMM path for that type on that CPU. Without one, prompt processing runs close to generation speed (pp/tg ≈ 1.3). The smaller Ternary-Bonsai-2-27B file (PTQ1_0) is about 4× slower than the larger one (PQ2_0) for prompt processing in Prism on AVX2 x86 (PrismML-Eng/llama.cpp#324).
 
 **5.7 Greedy text is not portable across CPUs.** With the same file, the same binary version and greedy decoding, a near-tie can flip one token and change the rest of the answer. In about 1% of positions the top-1 token differs between valid paths. Exact-text comparisons across machines (CI, "reproducible" evaluations) need a tolerance or a distance metric.
 

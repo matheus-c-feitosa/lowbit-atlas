@@ -60,6 +60,12 @@
        {"file": "PQ2_0", "engine": "ik_llama.cpp", "flags": "-rtr 1", "pp128": 3.95, "pp128_sd": 0.00, "tg32": 2.22, "tg32_sd": 0.03},
        {"file": "PTQ1_0", "engine": "ik_llama.cpp", "flags": "-rtr 1", "pp128": 3.00, "pp128_sd": 0.00, "tg32": 1.04, "tg32_sd": 0.00}
      ]},
+    {"class": "x86-avx2", "command": "llama-bench -p 128 -n 32 -t 4 -r 2", "unit": "tokens/s", "measured": "2026-10-14",
+     "session": "both files in one session (Kaggle, Intel Xeon @ 2.20GHz, 4 vCPUs); prism 6bfcd79 built by scripts/build.sh",
+     "rows": [
+       {"file": "PQ2_0", "engine": "prism", "pp128": 1.98, "pp128_sd": 0.18, "tg32": 0.97, "tg32_sd": 0.01},
+       {"file": "PTQ1_0", "engine": "prism", "pp128": 0.45, "pp128_sd": 0.01, "tg32": 0.40, "tg32_sd": 0.02}
+     ]},
     {"class": "x86-avx2", "command": "llama-completion timings (not llama-bench), separate session", "unit": "tokens/s",
      "rows": [
        {"file": "PTQ1_0", "engine": "prism", "prompt": "0.31-0.34", "generation": "0.31-0.34"},
@@ -71,7 +77,7 @@
   "notes": [
     "No divergence: PTQ1_0 ARM vs x86 within 0.03% PPL; ik_llama.cpp vs prism KLD ~2e-4 on PQ2_0 (2 windows).",
     "Greedy text can change with the CPU or the engine on a near-tie, with the same file and prompt. This is expected from the natural spread (~1% of positions change top-1), but visible to users.",
-    "On x86 without AVX-512, PTQ1_0 (the smaller file) is ~6x slower than PQ2_0 in prompt processing with prism (no fast PTQ1_0 path on x86; PrismML-Eng/llama.cpp#324).",
+    "On x86 without AVX-512, PTQ1_0 (the smaller file) is ~4.4x slower than PQ2_0 in prompt processing and ~2.4x slower in generation with prism (llama-bench, both files in one session, 2026-10-14); its prompt processing runs at about generation speed (no fast PTQ1_0 path on x86; PrismML-Eng/llama.cpp#324). An earlier estimate from llama-completion timings said ~6x.",
     "ik_llama.cpp is faster than prism only with -rtr (run-time repack): 1.85x prompt, 2.41x generation on PQ2_0. Without it, prompt processing is 3.5x slower. -rtr is not the default.",
     "ik_llama.cpp labels this PQ2_0 file 'IQ5_K - 5.5 bpw': general.file_type 141 means PQ2_0 in prism and IQ5_K in ik_llama.cpp. Label only; tensors are read by their own type (142).",
     "PQ2_0 was not run on the ARM VM (7.2 GB file, RAM limit). AVX-512 CPUs (where prism documents a PQ2_0 crash, #180) were not available."
