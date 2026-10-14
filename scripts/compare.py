@@ -89,12 +89,13 @@ TEXT = {
     "bitnet-2025-06": " Paris. Paris is a city that is known for its rich",
     "bitnet-605": " Paris. Paris is a city that is known for its rich",
     "bitnet-605-nokey": " a small city, and the capital of France is a small",
-    "27b-ptq1_0": " Paris.The capital of Germany is Berlin.The capital of Italy"
-                  " is Rome.The capital of Spain is Madrid.The capital of"
-                  " Portugal is",
-    "27b-pq2_0": " Paris.The capital of Germany is Berlin.The capital of Italy"
-                 " is Rome.The capital of Spain is Madrid.The capital of"
-                 " Portugal is",
+    # the 27B ends each sentence with a newline, compared here as a space
+    "27b-ptq1_0": " Paris. The capital of Germany is Berlin. The capital of"
+                  " Italy is Rome. The capital of Spain is Madrid. The"
+                  " capital of Portugal is",
+    "27b-pq2_0": " Paris. The capital of Germany is Berlin. The capital of"
+                 " Italy is Rome. The capital of Spain is Madrid. The"
+                 " capital of Portugal is",
     "ik-bitnet": " Paris. Paris is a city that is known for its rich",
 }
 LOADS = {  # runtime, file -> loads?

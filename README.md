@@ -123,7 +123,7 @@ On x86-64 at these commits, llama.cpp has no repacked path for Q1_0, while Prism
 - ik_llama.cpp vs Prism on PQ2_0 (x86-64): KLD 2.1e-4 with `-rtr` (same top-1 99.2%), 2.6e-4 without (98.8%). 2 windows only.
 - PTQ1_0 and PQ2_0 hold bit-identical weights (PrismML-Eng/llama.cpp#148). In ik_llama.cpp with `-rtr` they give the same PPL to every printed digit. In Prism the PPL differs slightly (8.7507 vs 8.7515), presumably because each type has its own kernel.
 - On AVX2 x86-64, PTQ1_0 processes prompts ~6× slower than PQ2_0 in Prism (no repacked path; PrismML-Eng/llama.cpp#324).
-- ik_llama.cpp with `-rtr` is ~1.9× (prompt) and ~2.4× (generation) faster than Prism on PQ2_0. Without `-rtr`, prompt processing is ~3.5× slower.
+- ik_llama.cpp with `-rtr` is ~1.9–2.1× (prompt) and ~2.3–2.4× (generation) faster than Prism on PQ2_0, in two sessions. Without `-rtr`, prompt processing is ~3.1–3.5× slower.
 - **Update, 2026-10-11:** llama.cpp merged support for this model's architecture (the Hadamard rotation; ggml-org/llama.cpp#29600), but not the PQ2_0/PTQ1_0 types (`master` still has 43 ggml types). The published 27B files therefore still need the Prism fork or ik_llama.cpp.
 - ik_llama.cpp labels this PQ2_0 file "IQ5_K". That is cosmetic: `general.file_type` 141 means PQ2_0 in Prism and IQ5_K in ik_llama.cpp.
 
@@ -135,7 +135,7 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 
 ```bash
 WORK=$PWD/work scripts/build.sh all     # llama.cpp, Prism, ik_llama.cpp, 3 bitnet.cpp variants
-WORK=$PWD/work scripts/run.sh quick     # BitNet + Bonsai 1.7B; "full" adds the 27B (>= 16 GB RAM, not yet run end to end)
+WORK=$PWD/work scripts/run.sh quick     # BitNet + Bonsai 1.7B; "full" adds the 27B (>= 16 GB RAM)
                                         # "27b" runs only the 27B part (needs prism and ik)
 scripts/compare.py work/results.jsonl   # SAME / CLOSE / DIFFERS vs the numbers published here
 ```
@@ -148,6 +148,12 @@ Every input is pinned: runtime commits, model files (revision and sha256) and Wi
 
 - Q2_0 g64 in llama.cpp and Prism gave 18.3723, against 18.3707 on the AMD EPYC used before. On x86-64 this type runs generic C code, which the compiler vectorizes differently for each CPU.
 - bitnet.cpp June 2025 gave 18.8431 with gcc, against 18.8137 with clang.
+
+**The 27B part, reproduced from scratch on x86-64** (Intel Xeon @ 2.2 GHz, gcc 13.3, `run.sh 27b`, 2026-10-14): about 15 min of builds and 2 h of measurements on a 4-vCPU VM. **5 of 5** perplexity and KL values came out SAME. Speed is not judged; the ratios between runtimes moved by up to 16% (see the 27B section).
+
+- The greedy-text check first said DIFFERS. That was a bug in `compare.py`, not in the model: the 27B ends each sentence with a newline, and the expected text had been stored without them. Fixed.
+- The text was then generated again, with the same function, on another x86-64 VM (AMD EPYC 7B12): both files gave text byte-identical to aarch64. On the Xeon, the run's summary was cut at 150 columns; the text matched up to that point ("…The capital of Spain is M").
+- `quick` and `27b` together are `full`. On x86-64 they ran in separate sessions.
 
 ## Feedback
 

@@ -21,7 +21,7 @@ Two questions, for each model file × runtime × CPU class:
 ## 2. Protocol
 
 - **Text:** WikiText-2 `wiki.test.raw` (sha256 `173c87a5…dd08`).
-- **Perplexity:** `llama-perplexity -c 512`, 8 windows (2 for the 27B model, which peaked at 7.7 GB of RAM and takes hours per run on these machines), `-t 2`. Each window starts with BOS, and the score is the NLL of the second half of the window.
+- **Perplexity:** `llama-perplexity -c 512`, 8 windows (2 for the 27B model, which peaked at 7.7 GB of RAM and takes hours per run on these machines), `-t 2`. The ik_llama.cpp runs on the 27B used `-t 4`. The x86-64 reproduction of the 27B ran everything with `THREADS=4` and gave the same values. Each window starts with BOS, and the score is the NLL of the second half of the window.
 - **Greedy text:** 8–32 tokens at `--temp 0` from fixed prompts, mainly `The capital of France is`.
 - **Speed:** `llama-bench -p 512 -n 64 -r 3` on the 1.7B models; shorter runs (`-p 128 -n 32 -r 2`) on the 27B model.
 
@@ -81,7 +81,7 @@ The natural spread **depends on the type**: ~2–3e-4 for Q1_0 and ~1e-3 for PQ2
 
 ## 7. Reproducing
 
-`scripts/build.sh all` rebuilds the runtimes at the pinned commits, `scripts/run.sh quick|full` downloads and verifies every file and runs every measurement (recording CPU, commits and flags), and `scripts/compare.py` checks a run against the published numbers. From-scratch runs reproduced all 43 comparable measurements exactly on aarch64, and gave 32 SAME, 3 CLOSE and 0 DIFFERS on x86-64; see the README.
+`scripts/build.sh all` rebuilds the runtimes at the pinned commits, `scripts/run.sh quick|full|27b` downloads and verifies every file and runs every measurement (recording CPU, commits and flags), and `scripts/compare.py` checks a run against the published numbers. From-scratch runs reproduced all 43 comparable measurements exactly on aarch64, and gave 32 SAME, 3 CLOSE and 0 DIFFERS on x86-64. The 27B part, run on its own on x86-64, gave 5 of 5 SAME; see the README.
 
 ## 8. Limits
 

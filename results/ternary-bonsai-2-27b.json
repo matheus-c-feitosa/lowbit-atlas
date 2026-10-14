@@ -41,7 +41,9 @@
   ],
   "greedy": [
     {"prompt": 1, "result": "identical in prism arm-dotprod PTQ1_0, prism x86 PTQ1_0 and PQ2_0, ik_llama.cpp x86 -rtr",
-     "text": "Paris.The capital of Germany is Berlin.The capital of Italy is Rome.The capital of Spain is Madrid.The capital of Portugal is"},
+     "text": "Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is",
+     "text_note": "The model ends each sentence with a newline (kept here). Before 2026-10-14 this file showed the text with the newlines removed.",
+     "regenerated": "2026-10-14, x86-64 AMD EPYC 7B12, Prism, PTQ1_0 and PQ2_0, with run.sh's m_greedy (-t 4): byte-identical to aarch64"},
     {"prompt": 2, "result": "end of text immediately, in all runs"},
     {"prompt": 3, "result": "differs by CPU and by engine (near-tie at the start)",
      "texts": {
@@ -73,5 +75,21 @@
     "ik_llama.cpp is faster than prism only with -rtr (run-time repack): 1.85x prompt, 2.41x generation on PQ2_0. Without it, prompt processing is 3.5x slower. -rtr is not the default.",
     "ik_llama.cpp labels this PQ2_0 file 'IQ5_K - 5.5 bpw': general.file_type 141 means PQ2_0 in prism and IQ5_K in ik_llama.cpp. Label only; tensors are read by their own type (142).",
     "PQ2_0 was not run on the ARM VM (7.2 GB file, RAM limit). AVX-512 CPUs (where prism documents a PQ2_0 crash, #180) were not available."
-  ]
+  ],
+  "x86_reproduction": {
+    "cpu": {"class": "x86_64 AVX2", "model": "Intel Xeon @ 2.20GHz", "vcpus": 4, "ram_gb": 31},
+    "compiler": "gcc 13.3.0", "threads": 4,
+    "source": "scripts/run.sh 27b at repo commit 34d2b17", "measured": "2026-10-13/2026-10-14",
+    "time_s": {"build_prism_ik": 867, "run_27b": 6954},
+    "ppl": {"prism-27b-ptq1_0": 8.7507, "prism-27b-pq2_0": 8.7515, "ik-rtr-27b-ptq1_0": 8.7552},
+    "kl_vs_prism_pq2_0": {"kl-ik-27b-pq2_0": 0.000261, "kl-ik-rtr-27b-pq2_0": 0.000212},
+    "speed_tps_pp128_tg32": {"prism-pq2_0": [2.29, 1.06], "ik-pq2_0": [0.73, 1.15],
+                             "ik-rtr-pq2_0": [4.92, 2.44], "ik-rtr-ptq1_0": [3.64, 1.26]},
+    "notes": [
+      "PPL and KL: 5 of 5 identical to the values above.",
+      "Greedy text: compare.py said DIFFERS because its expected text had no newlines (fixed). The run's summary showed the text up to 'The capital of Spain is M', matching; the full text was regenerated on AMD EPYC 7B12 (see greedy).",
+      "Speed is from another session than the 'speed' rows: ik -rtr vs prism on PQ2_0 2.15x prompt, 2.30x generation (1.85x / 2.41x before); without -rtr, prompt 3.1x slower (3.5x before).",
+      "Not covered: prism PTQ1_0 speed (run.sh does not benchmark it)."
+    ]
+  }
 }
