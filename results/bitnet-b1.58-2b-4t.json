@@ -215,7 +215,7 @@
   },
   {
    "id": "bitnetcpp-arm-pr642",
-   "engine": "bitnet.cpp + microsoft/BitNet#642, as it would be merged",
+   "engine": "bitnet.cpp + microsoft/BitNet#642 first version, as it would be merged",
    "commit": "9dcd80d (PR head, on 0b341e5)",
    "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af",
    "cpu": {
@@ -232,7 +232,7 @@
   },
   {
    "id": "bitnetcpp-arm-pr642-patch",
-   "engine": "bitnet.cpp + microsoft/BitNet#642 + its patch applied by hand (git apply in 3rdparty/llama.cpp, as the PR describes)",
+   "engine": "bitnet.cpp + microsoft/BitNet#642 first version + its patch applied by hand (git apply in 3rdparty/llama.cpp, as the PR described)",
    "commit": "9dcd80d (PR head, on 0b341e5)",
    "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af + patches/0001-fix-arm64-2b-inference.patch",
    "cpu": {
@@ -256,6 +256,33 @@
    ],
    "greedy": " fits offend teaching ultimately doubleImmediate gatherathed finite minimum doubling-adjust",
    "note": "garbage on this CPU; same text with -t 1, 2 and 8. The patch infers the llama3 pre-tokenizer, so wiki.test.raw gives 289,077 tokens instead of 325,587 and the PPL is not on the reference token IDs (it cannot explain 5e7, though). The author reports fluent sampled output (--temp 0.7) on Apple M4 Pro; not tested here"
+  },
+  {
+   "id": "bitnetcpp-arm-pr642-v2",
+   "engine": "bitnet.cpp + microsoft/BitNet#642 updated (the build applies its patch)",
+   "commit": "241ce30 (PR head, 2026-10-14)",
+   "submodule": "390c307752ab78fd8189f359d6954c9ba1be74af + patches/0001-fix-arm64-2b-inference.patch (applied at configure time)",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "clang 18.1.3",
+   "build": "the PR's steps: -DBUILD_SHARED_LIBS=OFF -DLLAMA_BUILD_COMMON=ON -DLLAMA_BUILD_TOOLS=ON; same result with the setup_env.py recipe plus -DBUILD_SHARED_LIBS=OFF",
+   "measured": "2026-10-14",
+   "ppl": 18.8444,
+   "ppl_windows": [
+    14.4323,
+    21.8927,
+    19.8875,
+    21.94,
+    19.7718,
+    18.6801,
+    18.7215,
+    18.8444
+   ],
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "note": "correct; per-window values identical to bitnetcpp-arm-pr2-relu2 (same kernel). Token IDs identical to the reference. With shared libraries (the default of setup_env.py on Linux), linking libggml-cpu.so fails: quantize_i2_s and ggml_vec_dot_i2_i8_s are defined in both quants.c and ggml-bitnet-mad.cpp"
   },
   {
    "id": "bitnetcpp-arm-2026-03",
@@ -564,7 +591,7 @@
  "notes": [
   "Known issues, not discoveries of this report: the ~6x perplexity comes from the FFN graph using SiLU where BitNet b1.58 uses ReLU2 (microsoft/BitNet#588, reported 2026-07-19; also #602). The aarch64 garbage output starts at 112f853 (microsoft/BitNet#470, bisected 2026-03-15; layout fixes in #586, isHuangXin/llama.cpp#2, #633). None of the fixes were merged as of 2026-10-09.",
   "What this report adds: a reference on the same token IDs (HF transformers, 18.7934); ik_llama.cpp (converted to iq2_bn_r4) matching it; bitnet.cpp 404980e (June 2025) matching it; current main + the one-line fix from #588 matching it on x86_64 (18.8676) and, with isHuangXin/llama.cpp#2, on aarch64 (18.8444); and an exact reproduction of the numbers published in #588.",
-  "ARM fixes in circulation, measured against the reference: isHuangXin/llama.cpp#2 + the #588 line fixes current main (18.8444); microsoft/BitNet#586 is correct on its March 2026 base (18.8515) but edits a file that current main no longer compiles; microsoft/BitNet#633 has no effect on current main (still ????). microsoft/BitNet#642 (2026-10-12) has no effect as merged (its fixes are in a .patch the build does not apply); with the patch applied by hand, the output on Neoverse-N1 is garbage (PPL 5.2e7). That src/ggml-bitnet-mad.cpp dropped out of the build was noted in microsoft/BitNet#626; the cause is the July 2026 submodule switch.",
+  "ARM fixes in circulation, measured against the reference: isHuangXin/llama.cpp#2 + the #588 line fixes current main (18.8444); microsoft/BitNet#586 is correct on its March 2026 base (18.8515) but edits a file that current main no longer compiles; microsoft/BitNet#633 has no effect on current main (still ????). microsoft/BitNet#642 gave garbage in its first version (9dcd80d: no effect as merged; PPL 5.2e7 with its patch); its update of 2026-10-14 (241ce30) is correct on Neoverse-N1 with a static build (18.8444) but does not link with shared libraries. That src/ggml-bitnet-mad.cpp dropped out of the build was noted in microsoft/BitNet#626; the cause is the July 2026 submodule switch.",
   "The GGUF has no tokenizer.ggml.pre; GGUF runtimes tokenize WikiText into ~16% more tokens than the HF tokenizer (1631 vs 1407 on the first 6000 bytes). The HF tokenizer gives PPL 15.3107 on its own tokens, which is not comparable to the rows above. Already noted in microsoft/BitNet#588 (override with tokenizer.ggml.pre=llama-bpe) and PR #508."
  ],
  "cross_check_588": {

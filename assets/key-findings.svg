@@ -4,15 +4,15 @@
 <text x="60" y="114" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="20" fill="#59636e" font-weight="normal" text-anchor="start">Independent check against references, Oct 2026 · github.com/matheus-c-feitosa/lowbit-atlas</text>
 <text x="60" y="190" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="26" fill="#1f2328" font-weight="bold" text-anchor="start">BitNet b1.58 2B4T: is the output right?</text>
 <text x="60" y="220" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="17" fill="#59636e" font-weight="normal" text-anchor="start">Perplexity vs. HF reference (18.79) on identical tokens, log scale</text>
-<line x1="440.0" y1="260" x2="440.0" y2="690" stroke="#d1d9e0"/>
-<text x="440.0" y="712" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">1×</text>
-<line x1="498.7" y1="260" x2="498.7" y2="690" stroke="#d1d9e0"/>
-<text x="498.7008491544763" y="712" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">2×</text>
-<line x1="576.3" y1="260" x2="576.3" y2="690" stroke="#d1d9e0"/>
-<text x="576.2991508455236" y="712" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">5×</text>
-<line x1="635.0" y1="260" x2="635.0" y2="690" stroke="#d1d9e0"/>
-<text x="635.0" y="712" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">10×</text>
-<text x="710" y="712" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">garbage</text>
+<line x1="440.0" y1="260" x2="440.0" y2="598" stroke="#d1d9e0"/>
+<text x="440.0" y="620" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">1×</text>
+<line x1="498.7" y1="260" x2="498.7" y2="598" stroke="#d1d9e0"/>
+<text x="498.7008491544763" y="620" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">2×</text>
+<line x1="576.3" y1="260" x2="576.3" y2="598" stroke="#d1d9e0"/>
+<text x="576.2991508455236" y="620" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">5×</text>
+<line x1="635.0" y1="260" x2="635.0" y2="598" stroke="#d1d9e0"/>
+<text x="635.0" y="620" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">10×</text>
+<text x="710" y="620" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="middle">garbage</text>
 <text x="60" y="290" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="19" fill="#1f2328" font-weight="bold" text-anchor="start">ik_llama.cpp</text>
 <text x="60" y="314" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="16" fill="#59636e" font-weight="normal" text-anchor="start">x86 and ARM</text>
 <line x1="440" y1="284" x2="440.3" y2="284" stroke="#1a7f37" stroke-width="4"/>
@@ -32,10 +32,6 @@
 <text x="60" y="590" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="16" fill="#59636e" font-weight="normal" text-anchor="start">ARM: prints ????????????</text>
 <path d="M701 551 l18 18 M719 551 l-18 18" stroke="#1f2328" stroke-width="4"/>
 <text x="745" y="566" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="17" fill="#1f2328" font-weight="bold" text-anchor="start"></text>
-<text x="60" y="658" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="19" fill="#1f2328" font-weight="bold" text-anchor="start">bitnet.cpp + PR #642 + its patch</text>
-<text x="60" y="682" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="16" fill="#59636e" font-weight="normal" text-anchor="start">ARM</text>
-<path d="M701 643 l18 18 M719 643 l-18 18" stroke="#1f2328" stroke-width="4"/>
-<text x="745" y="658" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="17" fill="#1f2328" font-weight="bold" text-anchor="start">PPL 5e7</text>
 <text x="930" y="190" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="26" fill="#1f2328" font-weight="bold" text-anchor="start">Ternary-Bonsai 1.7B: how fast? (x86 AVX2)</text>
 <text x="930" y="220" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="17" fill="#59636e" font-weight="normal" text-anchor="start">Prompt processing, tokens/s (llama-bench pp512, 2 threads, one session)</text>
 <text x="930" y="290" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="19" fill="#1f2328" font-weight="bold" text-anchor="start">ik_llama.cpp -rtr</text>

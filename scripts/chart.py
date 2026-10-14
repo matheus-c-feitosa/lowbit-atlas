@@ -52,9 +52,6 @@ def bitnet_rows():
                  f"{p:.1f}"))
     rows.append(("bitnet.cpp main", "ARM: prints " +
                  runs["bitnetcpp-arm-official"]["greedy"], None, ""))
-    p = runs["bitnetcpp-arm-pr642-patch"]["ppl"]
-    rows.append(("bitnet.cpp + PR #642 + its patch", "ARM", None,
-                 f"PPL {p:.0e}".replace("e+0", "e")))
     return ref, rows
 
 
@@ -93,10 +90,10 @@ def key_findings():
 
     for t in ticks:
         out.append(f'<line x1="{ax(t):.1f}" y1="{top}" x2="{ax(t):.1f}" '
-                   f'y2="{top + 5 * 92 - 30}" stroke="{LIGHT}"/>')
-        out.append(text(ax(t), top + 5 * 92 - 8, f"{t}×", 15, GRAY,
+                   f'y2="{top + len(rows) * 92 - 30}" stroke="{LIGHT}"/>')
+        out.append(text(ax(t), top + len(rows) * 92 - 8, f"{t}×", 15, GRAY,
                         anchor="middle"))
-    out.append(text(gx, top + 5 * 92 - 8, "garbage", 15, GRAY,
+    out.append(text(gx, top + len(rows) * 92 - 8, "garbage", 15, GRAY,
                     anchor="middle"))
     for i, (name, where, ratio, val) in enumerate(rows):
         y = top + 30 + i * 92
