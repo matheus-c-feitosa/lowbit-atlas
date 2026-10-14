@@ -757,7 +757,8 @@
   },
   "notes": [
    "Before and after were measured in one session on one VM; speeds from other sessions are not comparable (this one was ~15% slower than x86_reproduction before the kernel: 1.77 vs 2.1 pp512).",
-   "The commits pinned in scripts/ predate the kernel; the Q2_0 values elsewhere in this file are the generic C path."
+   "The commits pinned in scripts/ predate the kernel; the Q2_0 values elsewhere in this file are the generic C path.",
+   "Prism has no x86 Q2_0 kernel at e3de715222b2667c54a267441159a5729f11155e (prism branch, read in the code on 2026-10-14, not measured): ggml_vec_dot_q2_0_q8_0 maps to the generic C code, and its AVX-512 repacked path is for PQ2_0 only."
   ]
  }
 }

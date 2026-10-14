@@ -116,6 +116,7 @@ On x86-64 at these commits, llama.cpp has no repacked path for Q1_0, while Prism
 - **Compare speeds within one session only:** this session ran ~15% slower than the table above (1.77 vs 2.1 before the kernel).
 - The F16 reference is converted from the Q2_0 g64 file itself. The conversion is exact, because the file holds only Q2_0 and F32 tensors.
 - The commits pinned in `scripts/` predate the kernel, so the Q2_0 row in the table above is the generic path.
+- **Prism does not have this kernel yet** (read in the code of its `prism` branch at `e3de715`, 2026-10-14; not measured). Q2_0 still runs generic C code there on x86, with or without AVX-512 (its AVX-512 repacked path is for PQ2_0 only). Prism and llama.cpp ran Q2_0 at the same speed before the kernel (2.1 / 1.6), so on x86 a Q2_0 g64 file should run ~6× faster in llama.cpp from `0a731cc` than in Prism. The same model in PQ2_0 is still faster (speed table above): 27.8 / 12.9 in Prism, 71.4 / 17.3 in ik_llama.cpp with `-rtr`.
 
 ## Ternary-Bonsai-2 27B (Prism): correct, speed depends on the file
 
