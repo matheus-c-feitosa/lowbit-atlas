@@ -6,6 +6,10 @@ By [Matheus Feitosa](https://github.com/matheus-c-feitosa) · October 2026
 
 An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`), and `scripts/` rebuilds and reruns it.
 
+![BitNet: which builds give correct output; Bonsai: prompt speed by file and runtime](assets/key-findings.png)
+
+*Drawn from `results/` by `scripts/chart.py`.*
+
 ## Key findings
 
 1. **BitNet-b1.58-2B-4T: the official runtime (bitnet.cpp) gives wrong output on CPU, silently, and has done so for months.**
@@ -136,6 +140,10 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 
 ## Reproduce
 
+**In the browser, on a free x86-64 VM:** [open the notebook in Kaggle](https://www.kaggle.com/kernels/welcome?src=https://github.com/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb) (turn on Internet in its settings) or [in Colab](https://colab.research.google.com/github/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb). It builds everything, runs `quick`, compares, and prints a summary to share. That takes about 40 min of builds and 3 h of measurements on 4 vCPUs.
+
+**On your own Linux machine:**
+
 ```bash
 WORK=$PWD/work scripts/build.sh all     # llama.cpp, Prism, ik_llama.cpp, 3 bitnet.cpp variants
 WORK=$PWD/work scripts/run.sh quick     # BitNet + Bonsai 1.7B; "full" adds the 27B (>= 16 GB RAM)
@@ -157,6 +165,17 @@ Every input is pinned: runtime commits, model files (revision and sha256) and Wi
 - The greedy-text check first said DIFFERS. That was a bug in `compare.py`, not in the model: the 27B ends each sentence with a newline, and the expected text had been stored without them. Fixed.
 - The text was then generated again, with the same function, on another x86-64 VM (AMD EPYC 7B12): both files gave text byte-identical to aarch64. On the Xeon, the run's summary was cut at 150 columns; the text matched up to that point ("…The capital of Spain is M").
 - `quick` and `27b` together are `full`. On x86-64 they ran in separate sessions.
+
+## Run it on your CPU (help wanted)
+
+Measured so far: x86-64 with AVX2 (Intel Xeon, AMD EPYC) and aarch64 Neoverse-N1. **Not measured yet**, and the most useful:
+
+- x86-64 with AVX-512 or AVX-VNNI (Intel Sapphire Rapids and later, AMD Zen 4/5)
+- Arm with i8mm or SVE (AWS Graviton3/4, Neoverse V/N2, Snapdragon X)
+- Raspberry Pi 5 and other Cortex-A76 boards
+- Apple Silicon (M1–M5). The scripts are Linux-only so far; a macOS port is welcome.
+
+Run the notebook or the commands above, then [share your results](https://github.com/matheus-c-feitosa/lowbit-atlas/issues/new?template=results.yml). New CPU classes go into the report, with credit.
 
 ## Feedback
 

@@ -1,0 +1,40 @@
+name: Share your results
+description: You ran the scripts or the notebook on your CPU. Share the summary.
+title: "Results: <CPU model>"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for running it! Paste the SUMMARY block printed at the end of the notebook, or the output of `scripts/compare.py`. Results from CPU classes not measured yet are the most useful.
+  - type: input
+    id: cpu
+    attributes:
+      label: CPU
+      description: The first line of the summary, or `lscpu | grep "Model name"`.
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did it run?
+      options:
+        - Kaggle
+        - Colab
+        - My own machine
+        - Cloud VM
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: The SUMMARY block, or the output of `scripts/compare.py`.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else?
+      description: OS, compiler, build flags, problems you hit. You can attach `results.tar.gz` here.

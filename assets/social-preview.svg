@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+<rect width="1280" height="640" fill="#ffffff"/>
+<rect width="1280" height="12" fill="#0969da"/>
+<text x="70" y="140" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="64" fill="#1f2328" font-weight="bold" text-anchor="start">Low-bit LLMs on CPU</text>
+<text x="70" y="210" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="44" fill="#59636e" font-weight="normal" text-anchor="start">what runs correctly and fast where</text>
+<circle cx="82" cy="301" r="7" fill="#0969da"/>
+<text x="108" y="310" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="27" fill="#1f2328" font-weight="normal" text-anchor="start">Microsoft's bitnet.cpp gives wrong output on CPU: 6× perplexity on x86,</text>
+<text x="108" y="356" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="27" fill="#1f2328" font-weight="normal" text-anchor="start">garbage on ARM. Only the activation fix works on current main.</text>
+<circle cx="82" cy="409" r="7" fill="#0969da"/>
+<text x="108" y="418" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="27" fill="#1f2328" font-weight="normal" text-anchor="start">Bonsai (Prism) runs correctly; speed for the same model varies 34×</text>
+<text x="108" y="464" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="27" fill="#1f2328" font-weight="normal" text-anchor="start">with file and runtime (ik_llama.cpp -rtr is usually fastest).</text>
+<circle cx="82" cy="517" r="7" fill="#0969da"/>
+<text x="108" y="526" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="27" fill="#1f2328" font-weight="normal" text-anchor="start">Reproducible: commits, sha256 and scripts for every number.</text>
+<text x="70" y="590" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="26" fill="#0969da" font-weight="bold" text-anchor="start">github.com/matheus-c-feitosa/lowbit-atlas</text>
+</svg>
