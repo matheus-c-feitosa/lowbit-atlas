@@ -10,6 +10,18 @@ An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For ea
 
 *Drawn from `results/` by `scripts/chart.py`.*
 
+## What to use today
+
+At the commits measured (October 2026). Runtimes move fast; the linked issues may have changed.
+
+| Model | Use | Avoid |
+|---|---|---|
+| **BitNet b1.58 2B4T** | **ik_llama.cpp**, after converting the file once: `llama-quantize --allow-requantize ggml-model-i2_s.gguf out.gguf iq2_bn_r4`. Correct on x86-64 and aarch64. In bitnet.cpp: isHuangXin/llama.cpp#2 + [#605](https://github.com/microsoft/BitNet/pull/605), run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`. Correct on both CPUs ([details](#bitnet-b158-2b-4t-which-fix-actually-works)) | **bitnet.cpp main as published** (`0b341e5`, still the latest): wrong output on CPU, ~6× the reference perplexity on x86-64 and `????` on aarch64 |
+| **Bonsai-1.7B** (Q1_0) and **Ternary-Bonsai-1.7B** (Q2_0 g64, PQ2_0) | Any of llama.cpp, Prism and ik_llama.cpp: the output is correct wherever the file loads ([which file loads where](#bonsai-17b-prism-correct-everywhere-tested)). Fastest prompt processing with Q1_0 and PQ2_0: **ik_llama.cpp with `-rtr`**. For PQ2_0 generation on aarch64, Prism is faster | The Ternary `Q2_0.gguf` marked "recommended" on its model card: it loads in none of the three. On x86-64, Q2_0 g64 in Prism: generic C code, ~13× slower than PQ2_0 (llama.cpp has an AVX2 kernel since `0a731cc`) |
+| **Ternary-Bonsai-2 27B** (PQ2_0, PTQ1_0) | Prism or ik_llama.cpp (llama.cpp does not have these types yet). **ik_llama.cpp with `-rtr`** is ~2× faster than Prism on PQ2_0 (x86-64) | ik_llama.cpp without `-rtr`: prompt processing ~3× slower than Prism. On x86-64, PTQ1_0 in Prism: prompt processing ~6× slower than PQ2_0, although the file is smaller (no fast path yet, [PrismML-Eng/llama.cpp#324](https://github.com/PrismML-Eng/llama.cpp/issues/324)) |
+
+Measured on x86-64 with AVX2 and on aarch64 Neoverse-N1 only. On CPUs with AVX-512, loading PQ2_0 in Prism is reported to crash ([PrismML-Eng/llama.cpp#180](https://github.com/PrismML-Eng/llama.cpp/issues/180), not tested here). Other CPUs: [help wanted](#run-it-on-your-cpu-help-wanted).
+
 ## Key findings
 
 1. **BitNet-b1.58-2B-4T: the official runtime (bitnet.cpp) gives wrong output on CPU, silently, and has done so for months.**
