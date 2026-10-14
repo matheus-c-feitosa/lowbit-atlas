@@ -34,7 +34,7 @@ PPL = {
         "llama-q2_0_g64": 18.3707, "prism-q2_0_g64": 18.3707,
         "prism-pq2_0": 18.3694, "bitnet-official": 113.3283,
         "bitnet-fixed": 18.8676, "bitnet-2025-06": 18.8137,
-        "bitnet-605": 18.8676,  # expected = fixed; not yet measured on x86
+        "bitnet-605": 18.8676,  # = fixed; measured by run.sh quick on x86
         "ik-bitnet": 18.8519, "prism-27b-ptq1_0": 8.7507,
         # first measured by run.sh on x86-64 (Intel Xeon, gcc 13.3)
         "ik-q1_0": 23.155, "ik-pq2_0": 18.3611, "ik-rtr-q1_0": 23.1762,
