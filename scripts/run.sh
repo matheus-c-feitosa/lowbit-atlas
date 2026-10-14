@@ -6,6 +6,8 @@
 #   scripts/run.sh quick          # BitNet 2B4T + Bonsai 1.7B (~1-2 h)
 #   scripts/run.sh full           # + Ternary-Bonsai-2 27B (needs >= 16 GB RAM)
 #   scripts/run.sh 27b            # only the 27B part (needs prism and ik)
+#   scripts/run.sh check          # short check, ~30 min with the builds
+#                                 # (needs only prism and ik; see below)
 #
 # Every measurement is appended to $OUT ($WORK/results.jsonl) with the
 # CPU, runtime commit, model file and flags; logs go to $WORK/logs/.
@@ -15,13 +17,14 @@
 . "$(dirname "$0")/measure.sh"
 
 MODE=${1:-}
-case $MODE in quick|full|27b) ;; *) die "usage: $0 quick|full|27b" ;; esac
+case $MODE in quick|full|27b|check) ;; *) die "usage: $0 quick|full|27b|check" ;; esac
 
 SRC=$WORK/src
 LL=$SRC/llama.cpp/build/bin
 PR=$SRC/prism/build/bin
 IK=$SRC/ik_llama.cpp/build/bin
-NEED=("$LL" "$PR" "$IK"); [ "$MODE" = 27b ] && NEED=("$PR" "$IK")
+NEED=("$LL" "$PR" "$IK")
+case $MODE in 27b|check) NEED=("$PR" "$IK") ;; esac
 for b in "${NEED[@]}"; do
   [ -x "$b/llama-perplexity" ] || die "missing $b: run scripts/build.sh all"
 done
@@ -55,7 +58,66 @@ sys.exit(0 if ("????" in text or "!!!!" in text or not text.strip()) else 1)
 EOF
 }
 
-if [ "$MODE" != 27b ]; then
+# BitNet 2B4T: every bitnet.cpp variant that was built, then ik_llama.cpp
+bitnet_part() {
+fetch_model bitnet-i2_s
+BN=$(model_path bitnet-i2_s)
+ACT=(--override-kv bitnet-b1.58.hidden_activation=str:relu2)
+for v in official fixed 605 2025-06; do
+  b=$SRC/bitnet-$v/build/bin
+  if [ ! -x "$b/llama-perplexity" ]; then
+    log "bitnet $v not built (scripts/build.sh bitnet-$v): skipped"; continue
+  fi
+  extra=()
+  if [ $v = 605 ]; then
+    # without the key #605 keeps SiLU (wrong for this model): show it once
+    m_greedy bitnet-605-nokey "$b" "$BN" 12 "$FR"
+    extra=("${ACT[@]}")
+  fi
+  m_greedy "bitnet-$v" "$b" "$BN" 12 "$FR" "${extra[@]}"
+  if garbage "bitnet-$v"; then
+    # on aarch64 the official build prints '????'; its perplexity is nan
+    # and takes ~10 min per window, so it is recorded as garbage instead
+    log "bitnet-$v: garbage output, perplexity skipped"
+  else
+    m_ppl "bitnet-$v" "$b" "$BN" 8 "${extra[@]}"
+  fi
+done
+# ik_llama.cpp needs the I2_S file converted first (ik_llama.cpp#387)
+IKBN=$WORK/models/bitnet-iq2_bn_r4-ik.gguf
+[ -s "$IKBN" ] || "$IK/llama-quantize" --allow-requantize "$BN" "$IKBN" \
+  iq2_bn_r4 > "$WORK/logs/quantize-bitnet-ik.log" 2>&1 \
+  || die "ik conversion of the BitNet file"
+m_greedy ik-bitnet "$IK" "$IKBN" 12 "$FR"
+m_ppl ik-bitnet "$IK" "$IKBN" 8
+}
+
+if [ "$MODE" = check ]; then
+# ------------------------------------------------- short check (MODE=check)
+# A subset of quick, with the same labels and the same protocol (8 windows),
+# so compare.py judges it the same way. Only Prism and ik_llama.cpp need to
+# be built (scripts/build.sh prism ik); bitnet.cpp variants run if built.
+# Left out: KL (needs F16 references), Q2_0 g64 (generic C on x86-64 at the
+# pinned commits: very slow), ik_llama.cpp perplexity without -rtr, and the
+# repeated benchmark runs.
+fetch_model bonsai-q1_0; fetch_model ternary-pq2_0; fetch_wikitext
+Q1=$(model_path bonsai-q1_0); PQ=$(model_path ternary-pq2_0)
+mkdir -p "$WORK/logs"
+for p in prism:$PR:q1_0:$Q1 prism:$PR:pq2_0:$PQ ik:$IK:q1_0:$Q1 \
+         ik:$IK:pq2_0:$PQ; do
+  IFS=: read -r rt bin fl model <<< "$p"
+  m_greedy "$rt-$fl" "$bin" "$model" 8 "$FR"
+  [ "$rt" = prism ] && m_ppl "$rt-$fl" "$bin" "$model" 8
+done
+for fl in q1_0:$Q1 pq2_0:$PQ; do
+  m_ppl "ik-rtr-${fl%%:*}" "$IK" "${fl#*:}" 8 -rtr
+  m_bench "bench-prism-${fl%%:*}" "$PR" "${fl#*:}" 512 64 1
+  m_bench "bench-ik-rtr-${fl%%:*}" "$IK" "${fl#*:}" 512 64 1 -rtr 1
+done
+bitnet_part
+fi
+
+if [ "$MODE" = quick ] || [ "$MODE" = full ]; then
 # ---------------------------------------------------------------- Bonsai 1.7B
 for m in bonsai-q1_0 ternary-q2_0_g64 ternary-pq2_0 ternary-q2_0_legacy; do
   fetch_model "$m"
@@ -115,37 +177,7 @@ for fl in q1_0:$Q1 pq2_0:$PQ; do
   m_bench "bench-ik-rtr-${fl%%:*}" "$IK" "${fl#*:}" 512 64 3 -rtr 1
 done
 
-# ---------------------------------------------------------- BitNet 2B4T
-fetch_model bitnet-i2_s
-BN=$(model_path bitnet-i2_s)
-ACT=(--override-kv bitnet-b1.58.hidden_activation=str:relu2)
-for v in official fixed 605 2025-06; do
-  b=$SRC/bitnet-$v/build/bin
-  if [ ! -x "$b/llama-perplexity" ]; then
-    log "bitnet $v not built (scripts/build.sh bitnet-$v): skipped"; continue
-  fi
-  extra=()
-  if [ $v = 605 ]; then
-    # without the key #605 keeps SiLU (wrong for this model): show it once
-    m_greedy bitnet-605-nokey "$b" "$BN" 12 "$FR"
-    extra=("${ACT[@]}")
-  fi
-  m_greedy "bitnet-$v" "$b" "$BN" 12 "$FR" "${extra[@]}"
-  if garbage "bitnet-$v"; then
-    # on aarch64 the official build prints '????'; its perplexity is nan
-    # and takes ~10 min per window, so it is recorded as garbage instead
-    log "bitnet-$v: garbage output, perplexity skipped"
-  else
-    m_ppl "bitnet-$v" "$b" "$BN" 8 "${extra[@]}"
-  fi
-done
-# ik_llama.cpp needs the I2_S file converted first (ik_llama.cpp#387)
-IKBN=$WORK/models/bitnet-iq2_bn_r4-ik.gguf
-[ -s "$IKBN" ] || "$IK/llama-quantize" --allow-requantize "$BN" "$IKBN" \
-  iq2_bn_r4 > "$WORK/logs/quantize-bitnet-ik.log" 2>&1 \
-  || die "ik conversion of the BitNet file"
-m_greedy ik-bitnet "$IK" "$IKBN" 12 "$FR"
-m_ppl ik-bitnet "$IK" "$IKBN" 8
+bitnet_part
 
 fi # quick part
 

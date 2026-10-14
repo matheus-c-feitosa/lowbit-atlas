@@ -140,7 +140,7 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 
 ## Reproduce
 
-**In the browser, on a free x86-64 VM:** [open the notebook in Kaggle](https://www.kaggle.com/kernels/welcome?src=https://github.com/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb) (turn on Internet in its settings) or [in Colab](https://colab.research.google.com/github/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb). It builds everything, runs `quick`, compares, and prints a summary to share. That takes about 40 min of builds and 3 h of measurements on 4 vCPUs.
+**In the browser, on a free x86-64 VM:** [open the notebook in Kaggle](https://www.kaggle.com/kernels/welcome?src=https://github.com/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb) (turn on Internet in its settings) or [in Colab](https://colab.research.google.com/github/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb). By default it runs the short check (`run.sh check`, about 30 min on 4 vCPUs): it builds Prism and ik_llama.cpp, checks Bonsai 1.7B and BitNet b1.58 2B4T against the published numbers, and prints a summary to share. `MODE=quick` runs everything (about 40 min of builds and 3 h of measurements).
 
 **On your own Linux machine:**
 
@@ -148,12 +148,15 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 WORK=$PWD/work scripts/build.sh all     # llama.cpp, Prism, ik_llama.cpp, 3 bitnet.cpp variants
 WORK=$PWD/work scripts/run.sh quick     # BitNet + Bonsai 1.7B; "full" adds the 27B (>= 16 GB RAM)
                                         # "27b" runs only the 27B part (needs prism and ik)
+                                        # "check": a ~30 min subset (needs prism and ik)
 scripts/compare.py work/results.jsonl   # SAME / CLOSE / DIFFERS vs the numbers published here
 ```
 
 Every input is pinned: runtime commits, model files (revision and sha256) and WikiText-2. `run.sh` records each measurement with the CPU, the runtime and submodule commits, and the flags.
 
 **Reproduced from scratch on aarch64** (Neoverse-N1, clang 18, 2026-10-11): all builds, then `run.sh quick` in about 2 h. Result: **43 of 43** comparable measurements came out SAME (greedy text, perplexity, KL, which file loads where). Speed is not judged: prompt processing came within 2.5% of the published numbers, generation within 10%.
+
+**The short check, from scratch on aarch64** (`build.sh prism ik` then `run.sh check`, Neoverse-N1, clang 18, 2026-10-14): 16 min of builds and 16 min of measurements on 2 cores. **10 of 10** comparable measurements came out SAME.
 
 **Reproduced from scratch on x86-64** (hosted VM, Intel Xeon @ 2.2 GHz, gcc 13.3, right after publication): 32 SAME, 3 CLOSE, 0 DIFFERS, plus 13 measurements that were new on x86-64 and are now part of `compare.py`. The 3 CLOSE are within the spread between valid code paths:
 

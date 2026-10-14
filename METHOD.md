@@ -81,7 +81,7 @@ The natural spread **depends on the type**: ~2–3e-4 for Q1_0 and ~1e-3 for PQ2
 
 ## 7. Reproducing
 
-`scripts/build.sh all` rebuilds the runtimes at the pinned commits, `scripts/run.sh quick|full|27b` downloads and verifies every file and runs every measurement (recording CPU, commits and flags), and `scripts/compare.py` checks a run against the published numbers. From-scratch runs reproduced all 43 comparable measurements exactly on aarch64, and gave 32 SAME, 3 CLOSE and 0 DIFFERS on x86-64. The 27B part, run on its own on x86-64, gave 5 of 5 SAME; see the README.
+`scripts/build.sh all` rebuilds the runtimes at the pinned commits, `scripts/run.sh quick|full|27b` downloads and verifies every file and runs every measurement (recording CPU, commits and flags); `run.sh check` runs a short subset with the same protocol, and `scripts/compare.py` checks a run against the published numbers. From-scratch runs reproduced all 43 comparable measurements exactly on aarch64, and gave 32 SAME, 3 CLOSE and 0 DIFFERS on x86-64. The 27B part, run on its own on x86-64, gave 5 of 5 SAME; see the README.
 
 ## 8. Limits
 
