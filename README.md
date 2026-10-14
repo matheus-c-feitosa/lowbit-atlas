@@ -13,7 +13,7 @@ An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For ea
    - On aarch64 the output is garbage (`????`) since commit `112f853`, Nov 2025 ([#470](https://github.com/microsoft/BitNet/issues/470)).
    - Fixes have been proposed but **none is merged**. We tested them against a reference: on current main, **only the activation fix from #588 gives correct output** (plus isHuangXin/llama.cpp#2 on aarch64). It can be applied either as a one-line change or, safely for the other BitNet models, through [#605](https://github.com/microsoft/BitNet/pull/605) plus a runtime key. Two other proposed fixes do not reach the code that runs. See [BitNet](#bitnet-b158-2b-4t-which-fix-actually-works).
 2. **The Bonsai family (Prism) runs correctly** in llama.cpp and the Prism fork on every CPU class tested, and in ik_llama.cpp where tested. The differences are in **speed** and in **which file loads where**: the file marked "recommended" on one model card does not load in any of the three runtimes.
-3. **Speed depends on the format × CPU × runtime path, not on file size.** The smallest 27B file is ~6× slower to process prompts on AVX2 x86. ik_llama.cpp with `-rtr` is the fastest in most cases measured (not for PQ2_0 generation on aarch64), and `-rtr` is off by default: without it, ik_llama.cpp is often the slowest. On x86-64 at the measured commits, Q2_0 has no SIMD kernel at all, so the Ternary-Bonsai-1.7B Q2_0 g64 file processes prompts ~13× slower than its PQ2_0 version. llama.cpp merged an AVX2 kernel for it on 2026-10-13, after these measurements.
+3. **Speed depends on the format × CPU × runtime path, not on file size.** The smallest 27B file is ~6× slower to process prompts on AVX2 x86. ik_llama.cpp with `-rtr` is the fastest in most cases measured (not for PQ2_0 generation on aarch64), and `-rtr` is off by default: without it, ik_llama.cpp is often the slowest. On x86-64 at the measured commits, Q2_0 has no SIMD kernel at all, so the Ternary-Bonsai-1.7B Q2_0 g64 file processes prompts ~13× slower than its PQ2_0 version. llama.cpp merged an AVX2 kernel for it on 2026-10-13: measured before and after on the same VM, it is ~6× faster with unchanged accuracy.
 
 ## BitNet-b1.58-2B-4T: which fix actually works
 
@@ -102,7 +102,20 @@ The legacy Q2_0 file problem was already reported (PrismML-Eng/llama.cpp#167, Te
 | Q2_0 g64 | 2.1 / 1.6 | 2.1 / 1.6 | — | — |
 | PQ2_0 | — | 27.8 / 12.9 | 12.0 / 12.9 | **71.4 / 17.3** |
 
-On x86-64 at these commits, llama.cpp has no repacked path for Q1_0, while Prism does. Neither runtime has a SIMD kernel for Q2_0: it runs generic C code, ~13× slower than PQ2_0. An AVX2 Q2_0 kernel was merged into llama.cpp on 2026-10-13 (ggml-org/llama.cpp#30447, about 8–9× faster according to its author); it is not measured here.
+On x86-64 at these commits, llama.cpp has no repacked path for Q1_0, while Prism does. Neither runtime has a SIMD kernel for Q2_0 at these commits: it runs generic C code, ~13× slower than PQ2_0.
+
+**Update, 2026-10-13:** llama.cpp merged an AVX2 Q2_0 kernel (ggml-org/llama.cpp#30447, `0a731cc`). Measured at that commit and at its parent (`f851e24`), in one session on the same kind of VM (Intel Xeon @ 2.2 GHz, AVX2 + FMA, no AVX-512, gcc 13.3, 2 threads):
+
+| Q2_0 g64 in llama.cpp | Speed, tokens/s (prompt / generation) | KL vs exact F16 | Same top-1 | Greedy text |
+|---|---|---|---|---|
+| before: generic C | 1.77 / 1.41 | 2.32e-4 | 99.1% | "Paris. The capital of France is Paris" |
+| after: AVX2 kernel | **11.3 / 8.5** (6.4× / 6.0×) | 2.27e-4 | 99.2% | same |
+
+- **The kernel is correct:** KL is unchanged, the text is the same, and the PPL moved by −0.05% (18.3723 → 18.3632).
+- **It is ~6× faster end to end.** Its author reported 8–9× on the matrix multiplication alone, on AMD Zen 2. The end-to-end numbers also include the other operations.
+- **Compare speeds within one session only:** this session ran ~15% slower than the table above (1.77 vs 2.1 before the kernel).
+- The F16 reference is converted from the Q2_0 g64 file itself. The conversion is exact, because the file holds only Q2_0 and F32 tensors.
+- The commits pinned in `scripts/` predate the kernel, so the Q2_0 row in the table above is the generic path.
 
 ## Ternary-Bonsai-2 27B (Prism): correct, speed depends on the file
 

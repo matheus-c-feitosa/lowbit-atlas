@@ -699,5 +699,65 @@
    "Q2_0 has no SIMD kernel on x86-64 at these commits (generic C): 18.3723 here vs 18.3707 on AMD EPYC 7B12, compiler vectorization differs per CPU; ~13x slower prompt processing than PQ2_0. llama.cpp merged an AVX2 Q2_0 kernel on 2026-10-13 (#30447).",
    "Greedy text identical to aarch64 for all files and runtimes; load matrix identical (ik also refuses the legacy Q2_0)."
   ]
+ },
+ "x86_q2_0_avx2_kernel": {
+  "cpu": {
+   "class": "x86_64 AVX2",
+   "model": "Intel Xeon @ 2.20GHz",
+   "vcpus": 4,
+   "flags": "avx2 f16c fma (no AVX-512, no VNNI)"
+  },
+  "compiler": "gcc 13.3.0",
+  "measured": "2026-10-13",
+  "model_file": "Ternary-Bonsai-1.7B-Q2_0_g64.gguf",
+  "runtime": "llama.cpp",
+  "commits": {
+   "before": "f851e244d0dc56074ab701c4467edb116840cb88",
+   "after": "0a731cced9ed826349838333a767ccae63164c2c"
+  },
+  "change": "ggml-org/llama.cpp#30447 (AVX2 ggml_vec_dot_q2_0_q8_0)",
+  "reference": {
+   "kind": "F16 converted from the Q2_0 g64 file (exact: only Q2_0 and F32 tensors)",
+   "ppl": 18.3766
+  },
+  "protocol": "llama-perplexity -c 512, 8 windows, -t 4 for PPL/KL; llama-bench -p 512 -n 64 -t 2 -r 3",
+  "before": {
+   "greedy": " Paris. The capital of France is Paris",
+   "ppl_q": 18.372333,
+   "kld_mean": 0.000232,
+   "kld_mean_err": 7e-06,
+   "kld_max": 0.00436,
+   "top1_same_pct": 99.118,
+   "top1_same_err": 0.207,
+   "pp512_tps": [
+    1.77,
+    0.03
+   ],
+   "tg64_tps": [
+    1.41,
+    0.0
+   ]
+  },
+  "after": {
+   "greedy": " Paris. The capital of France is Paris",
+   "ppl_q": 18.363247,
+   "kld_mean": 0.000227,
+   "kld_mean_err": 6e-06,
+   "kld_max": 0.003921,
+   "top1_same_pct": 99.216,
+   "top1_same_err": 0.195,
+   "pp512_tps": [
+    11.32,
+    0.07
+   ],
+   "tg64_tps": [
+    8.51,
+    0.04
+   ]
+  },
+  "notes": [
+   "Before and after were measured in one session on one VM; speeds from other sessions are not comparable (this one was ~15% slower than x86_reproduction before the kernel: 1.77 vs 2.1 pp512).",
+   "The commits pinned in scripts/ predate the kernel; the Q2_0 values elsewhere in this file are the generic C path."
+  ]
  }
 }
