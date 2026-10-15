@@ -4,7 +4,7 @@ By [Matheus Feitosa](https://github.com/matheus-c-feitosa) · October 2026
 
 > **First edition, October 2026.** Measured, and reproduced from scratch with the scripts in this repository, on aarch64 (Neoverse-N1) and x86-64 (Intel Xeon, AVX2). Last updated 2026-10-15 ([changelog](#changelog)).
 
-An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`), and `scripts/` rebuilds and reruns it.
+An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`); `scripts/` rebuilds and reruns the main measurements.
 
 ![BitNet: which builds give correct output; Bonsai: prompt speed by file and runtime](assets/key-findings.png)
 
@@ -154,7 +154,7 @@ See [METHOD.md](METHOD.md): protocol, the two kinds of reference, what counts as
 
 ## Reproduce
 
-**In the browser, on a free x86-64 VM:** [open the notebook in Kaggle](https://www.kaggle.com/kernels/welcome?src=https://github.com/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb) (turn on Internet in its settings) or [in Colab](https://colab.research.google.com/github/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb). By default it runs the short check (`run.sh check`, about 30 min on 4 vCPUs): it builds Prism and ik_llama.cpp, checks Bonsai 1.7B and BitNet b1.58 2B4T against the published numbers, and prints a summary to share. `MODE=quick` runs everything (about 40 min of builds and 3 h of measurements).
+**In the browser, on a free x86-64 VM:** [open the notebook in Kaggle](https://www.kaggle.com/kernels/welcome?src=https://github.com/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb) (turn on Internet in its settings) or [in Colab](https://colab.research.google.com/github/matheus-c-feitosa/lowbit-atlas/blob/main/notebooks/reproduce.ipynb). By default it runs the short check (`run.sh check`: about 30 min on Kaggle's 4 vCPUs, about 1 h on Colab's free 2 vCPUs): it builds Prism and ik_llama.cpp, checks Bonsai 1.7B and BitNet b1.58 2B4T against the published numbers, and prints a summary to share. `MODE=quick` runs everything (about 40 min of builds and 3 h of measurements).
 
 **On your own Linux machine:**
 
@@ -207,6 +207,8 @@ The full history is in the commit log.
 - **2026-10-15**
   - Added: microsoft/BitNet#642, third version: correct on aarch64 and x86-64, with static and shared-library builds, and on the scalar path for CPUs without dotprod (ARMv8.0 build).
   - Chart: the slowest bar is now Prism's Q2_0 g64, which still has no SIMD kernel on x86-64 (same session as the other bars). llama.cpp has had an AVX2 kernel for it since 2026-10-13.
+  - Notebook tested on Colab's free CPU runtime (2 vCPUs, gcc 13.3): the short check matches all 10 published values, in about 1 h.
+  - Clarified: `scripts/` reruns the main measurements, not every number in the report (the checks of open BitNet pull requests were run by hand).
 - **2026-10-14**
   - **Correction:** in Prism on AVX2 x86-64, the 27B PTQ1_0 file is ~4.4× slower than PQ2_0 for prompt processing and ~2.4× for generation, remeasured with `llama-bench` with both files in one session. The first edition said ~6×, from `llama-completion` timings. The correction was also posted where the old number had been shared ([Ternary-Bonsai-27B-gguf #51](https://huggingface.co/prism-ml/Ternary-Bonsai-27B-gguf/discussions/51#6acfebf1739131619819a7f8)).
   - Added: [What to use today](#what-to-use-today); `run.sh check` (a ~30 min subset with the same protocol) and a browser notebook for Kaggle or Colab; a [results form](https://github.com/matheus-c-feitosa/lowbit-atlas/issues/new?template=results.yml) for new CPUs.
