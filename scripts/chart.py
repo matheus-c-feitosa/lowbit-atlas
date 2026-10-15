@@ -61,7 +61,7 @@ def speed_rows():
         ("ik_llama.cpp -rtr", "PQ2_0", s["ik-rtr-pq2_0"][0]),
         ("Prism", "PQ2_0", s["prism-pq2_0"][0]),
         ("ik_llama.cpp, no -rtr", "PQ2_0", s["ik-pq2_0"][0]),
-        ("llama.cpp", "Q2_0 g64, no SIMD kernel*", s["llama-q2_0_g64"][0]),
+        ("Prism", "Q2_0 g64, no SIMD kernel yet*", s["prism-q2_0_g64"][0]),
     ]
 
 
@@ -134,10 +134,10 @@ def key_findings():
     ratio = sp[0][2] / sp[-1][2]
     out.append(text(x0, top + 4 * 92 + 34, f"Same model, {ratio:.0f}× apart "
                     "depending on file and runtime.", 19, INK, "bold"))
-    out.append(text(x0, top + 4 * 92 + 62, "*llama.cpp merged an AVX2 Q2_0 "
-                    "kernel on 2026-10-13:", 15, GRAY))
-    out.append(text(x0, top + 4 * 92 + 82, "~6× faster, measured separately.",
-                    15, GRAY))
+    out.append(text(x0, top + 4 * 92 + 62, "*Not in Prism yet (read in its "
+                    "code). llama.cpp merged an AVX2", 15, GRAY))
+    out.append(text(x0, top + 4 * 92 + 82, "Q2_0 kernel on 2026-10-13: ~6× "
+                    "faster, measured separately.", 15, GRAY))
 
     out.append(f'<line x1="60" y1="{H - 70}" x2="{W - 60}" y2="{H - 70}" '
                f'stroke="{LIGHT}"/>')

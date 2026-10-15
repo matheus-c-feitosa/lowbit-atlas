@@ -46,13 +46,13 @@
 <text x="930" y="498" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="16" fill="#59636e" font-weight="normal" text-anchor="start">PQ2_0</text>
 <rect x="1170" y="452" width="47.2" height="30" fill="#0969da" rx="3"/>
 <text x="1229.1570687964131" y="474" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="18" fill="#1f2328" font-weight="bold" text-anchor="start">12.0</text>
-<text x="930" y="566" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="19" fill="#1f2328" font-weight="bold" text-anchor="start">llama.cpp</text>
-<text x="930" y="590" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="16" fill="#59636e" font-weight="normal" text-anchor="start">Q2_0 g64, no SIMD kernel*</text>
+<text x="930" y="566" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="19" fill="#1f2328" font-weight="bold" text-anchor="start">Prism</text>
+<text x="930" y="590" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="16" fill="#59636e" font-weight="normal" text-anchor="start">Q2_0 g64, no SIMD kernel yet*</text>
 <rect x="1170" y="544" width="8.2" height="30" fill="#0969da" rx="3"/>
 <text x="1190.2387557797394" y="566" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="18" fill="#1f2328" font-weight="bold" text-anchor="start">2.1</text>
 <text x="930" y="662" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="19" fill="#1f2328" font-weight="bold" text-anchor="start">Same model, 34× apart depending on file and runtime.</text>
-<text x="930" y="690" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="start">*llama.cpp merged an AVX2 Q2_0 kernel on 2026-10-13:</text>
-<text x="930" y="710" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="start">~6× faster, measured separately.</text>
+<text x="930" y="690" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="start">*Not in Prism yet (read in its code). llama.cpp merged an AVX2</text>
+<text x="930" y="710" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="15" fill="#59636e" font-weight="normal" text-anchor="start">Q2_0 kernel on 2026-10-13: ~6× faster, measured separately.</text>
 <line x1="60" y1="830" x2="1540" y2="830" stroke="#d1d9e0"/>
 <text x="60" y="864" font-family="DejaVu Sans, Noto Sans, Helvetica, Arial, sans-serif" font-size="17" fill="#59636e" font-weight="normal" text-anchor="start">Intel Xeon @ 2.2 GHz (AVX2) and Arm Neoverse-N1. Every number comes with its commit, file sha256 and the scripts to rerun it.</text>
 </svg>
