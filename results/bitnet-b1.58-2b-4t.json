@@ -369,6 +369,33 @@
    "note": "correct: the scalar branch of ggml_vec_dot_i2_i8_s (CPUs without dotprod, e.g. Cortex-A72). Within 0.036% of bitnetcpp-arm-pr642-v3 per window; not identical because the build also changes other paths (no FP16_VA). Token IDs identical to the reference"
   },
   {
+   "id": "bitrun-arm-v0.2",
+   "engine": "BitRun v0.2.0-beta engine: IshekKhal/llama.cpp branch bitrun-engine = ggml-org/llama.cpp 843e7dcc1 + BitRun patches/0004-bitrun-modern-engine-b1395.patch (identical tree); ReLU2 fixed in src/models/bitnet.cpp",
+   "commit": "d00e6f155 (2026-10-15)",
+   "cpu": {
+    "class": "aarch64 NEON+dotprod",
+    "model": "Neoverse-N1",
+    "cores": 2
+   },
+   "compiler": "gcc 13.3.0",
+   "build": "-DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DLLAMA_BUILD_COMMON=ON -DLLAMA_BUILD_TOOLS=ON -DLLAMA_BUILD_SERVER=OFF -DLLAMA_CURL=OFF (as the project's scripts/build_linux.sh, without the server and the x86 flag); built from source: the v0.2.0-beta release has no Linux aarch64 binary",
+   "measured": "2026-10-16",
+   "ppl": 18.8369,
+   "ppl_stderr": 1.30521,
+   "ppl_windows": [
+    14.3546,
+    21.944,
+    19.833,
+    21.9702,
+    19.7892,
+    18.7015,
+    18.7373,
+    18.8369
+   ],
+   "greedy": " Paris. Paris is a city that is known for its rich",
+   "note": "correct: +0.23% vs the reference, largest window gap 0.39% (bitnetcpp-arm-pr642-v3: +0.27%, 0.41%). Token IDs identical to the reference. Rerun in a second session: identical. ReLU2 is unconditional in the bitnet graph, so, as with the one-line #588 change, it would also apply to the 1bitLLM models (SiLU); not tested. x86-64 not tested"
+  },
+  {
    "id": "bitnetcpp-arm-2026-03",
    "engine": "bitnet.cpp (March 2026)",
    "commit": "01eb415",

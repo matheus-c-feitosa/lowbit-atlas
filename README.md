@@ -2,7 +2,7 @@
 
 By [Matheus Feitosa](https://github.com/matheus-c-feitosa) · October 2026
 
-> **First edition, October 2026.** Measured, and reproduced from scratch with the scripts in this repository, on aarch64 (Neoverse-N1) and x86-64 (Intel Xeon, AVX2). Last updated 2026-10-15 ([changelog](#changelog)).
+> **First edition, October 2026.** Measured, and reproduced from scratch with the scripts in this repository, on aarch64 (Neoverse-N1) and x86-64 (Intel Xeon, AVX2). Last updated 2026-10-16 ([changelog](#changelog)).
 
 An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`); `scripts/` rebuilds and reruns the main measurements.
 
@@ -51,6 +51,7 @@ Same official GGUF (`ggml-model-i2_s.gguf`, sha256 `4221b252…`) and the same 4
 | main + #642, second version (`241ce30`, Oct 14) | aarch64 NEON+dotprod | "Paris. Paris is a city that is known for its rich" | 18.84 | correct with a static build; with shared libraries, the default of `setup_env.py`, it does not link: `quantize_i2_s` and `ggml_vec_dot_i2_i8_s` are defined twice |
 | **main + #642, third version (`4cdf35a`, Oct 15)** | aarch64 NEON+dotprod / x86-64 AVX2 | "Paris. Paris is a city that is known for its rich" | **18.84 / 18.87** | **+0.27% / +0.39% — correct**, with a static build and with the `setup_env.py` recipe (shared libraries). Per window, identical to the llama.cpp#2 + #588 line rows: same kernel, same activation fix |
 | main + #642, third version, built with `-march=armv8-a` (no dotprod: the kernel's scalar path) | aarch64 ARMv8.0 (emulated on Neoverse-N1) | "Paris. Paris is a city that is known for its rich" | 18.85 | **+0.30% — correct**. The path a CPU without dotprod takes, such as the Raspberry Pi 4's Cortex-A72; real hardware not tested |
+| [BitRun](https://github.com/IshekKhal/bitrun) v0.2 engine (`d00e6f155`: llama.cpp `843e7dcc1` + BitRun's patch, by the author of #642), gcc 13.3 | aarch64 NEON+dotprod | "Paris. Paris is a city that is known for its rich" | 18.84 | **+0.23% — correct**. Rebased on current llama.cpp, with ReLU² fixed in the bitnet graph: as with the one-line change, the 1bitLLM models would get it too (not tested). Built from source (the release has no Linux aarch64 binary); x86-64 not tested |
 | [#586](https://github.com/microsoft/BitNet/pull/586) on its own base (`01eb415`, Mar 2026) | aarch64 | "Paris. Paris is a city…" | 18.85 | correct, but does not apply to current main (same reason) |
 | bitnet.cpp `404980e` (June 2025) | aarch64 / x86-64 | "Paris. Paris is a city…" | 18.85 / 18.81 (clang), 18.84 (gcc) | correct (before the regression) |
 | **ik_llama.cpp `04b4ebc`** (file converted to `iq2_bn_r4`, as [ik#387](https://github.com/ikawrakow/ik_llama.cpp/issues/387) documents) | aarch64 / x86-64 | "Paris. Paris is a city…" | **18.81 / 18.85** | **correct** |
@@ -204,6 +205,8 @@ Found an error, or have a CPU, runtime or model file that is not covered here? P
 
 The full history is in the commit log.
 
+- **2026-10-16**
+  - Added: the BitRun v0.2 engine (IshekKhal, the author of #642), rebased on current llama.cpp: correct on aarch64 (18.84 on the same token IDs; identical in a second session).
 - **2026-10-15**
   - Added: microsoft/BitNet#642, third version: correct on aarch64 and x86-64, with static and shared-library builds, and on the scalar path for CPUs without dotprod (ARMv8.0 build).
   - Chart: the slowest bar is now Prism's Q2_0 g64, which still has no SIMD kernel on x86-64 (same session as the other bars). llama.cpp has had an AVX2 kernel for it since 2026-10-13.
@@ -222,6 +225,7 @@ The full history is in the commit log.
 **Follow-ups in other projects.** What changed after a result from this report was posted there. A follow-up is not a merge: check the links for the current state.
 
 - **microsoft/BitNet#642** (IshekKhal): the first version had no effect on aarch64 as it would be merged, and gave garbage with its patch applied ([test](https://github.com/microsoft/BitNet/pull/642#issuecomment-6173981334)). The second version (`241ce30`) was correct on aarch64 with a static build, but did not link with shared libraries, the default of `setup_env.py` ([retest](https://github.com/microsoft/BitNet/pull/642#issuecomment-6176911694)). The third version (`4cdf35a`) is correct on aarch64 and x86-64, with both builds, and on the scalar path of an ARMv8.0 build ([retest](https://github.com/microsoft/BitNet/pull/642#issuecomment-6196208436)). Not merged.
+- **BitRun** (IshekKhal): its [patches README](https://github.com/IshekKhal/bitrun/blob/main/patches/README.md) credits the tests posted in #642 for two of the bugs it lists. The v0.2 engine is correct on aarch64 (BitNet table above).
 - **microsoft/BitNet#633** (uno-km): updated after the first test (`899b738`). The [retest](https://github.com/microsoft/BitNet/pull/633#issuecomment-6097867561) still printed `????` on aarch64: the file it changes is not compiled on current main. Not merged.
 - **ikawrakow/ik_llama.cpp#2651:** the maintainer recommended `-DGGML_NATIVE=OFF -DGGML_ARCH_FLAGS=-mcpu=native` for clang on aarch64. `build.sh` has used it since 2026-10-13, with identical results.
 
