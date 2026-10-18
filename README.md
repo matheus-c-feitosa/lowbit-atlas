@@ -91,7 +91,7 @@ What this report adds is the comparison of the fixes against a reference on iden
 
 ## Bonsai 1.7B (Prism): correct everywhere tested
 
-Three formats (PQ2_0 loads only in Prism) × five CPU classes × llama.cpp and the Prism fork, plus ik_llama.cpp on aarch64 NEON+dotprod. The CPU classes are aarch64 NEON+dotprod, aarch64 ARMv8.0, x86-64 AVX2, x86-64 AVX and x86-64 SSE.
+Three formats (PQ2_0 does not load in llama.cpp) × five CPU classes × llama.cpp and the Prism fork, plus ik_llama.cpp on aarch64 NEON+dotprod and x86-64 AVX2. The CPU classes are aarch64 NEON+dotprod, aarch64 ARMv8.0, x86-64 AVX2, x86-64 AVX and x86-64 SSE.
 
 - Kernel tests: `test-backend-ops` 0 failures (llama.cpp 310/310, Prism 833/833) in every class.
 - Perplexity spread across classes and runtimes is ≤ 0.15%, within the spread between valid code paths (see [METHOD](METHOD.md#5-pitfalls-found-along-the-way)). Greedy text is identical everywhere.
@@ -229,6 +229,7 @@ The full history is in the commit log.
   - Added: `tests/`, checks of the scripts themselves (a few seconds, no downloads).
   - Added: the short check on aarch64 with gcc 13.3 instead of clang 18: 8 SAME and 2 CLOSE ([Reproduce](#reproduce)).
   - Added: Q2_0 in ik_llama.cpp (ik#2659), measured at `c446f1e` on aarch64 and x86-64: correct, and ~15× faster than Prism for prompt processing on x86-64 ([Bonsai section](#bonsai-17b-prism-correct-everywhere-tested)).
+  - Clarified: PQ2_0 loads in Prism and ik_llama.cpp, not in llama.cpp; in `results/bonsai-1.7b.json`, KL on x86-64 is in `x86_reproduction` (the first matrix measured it on aarch64 only).
 - **2026-10-16**
   - Added: the BitRun v0.2 engine (IshekKhal, the author of #642), rebased on current llama.cpp: correct on aarch64 (18.84 on the same token IDs; identical in a second session).
 - **2026-10-15**

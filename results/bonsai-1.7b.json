@@ -623,7 +623,7 @@
   "No divergence above the natural spread between valid code paths in 3 formats x 5 CPU classes x 2 engines (llama.cpp, prism), plus ik_llama.cpp on arm-dotprod. Greedy text identical everywhere.",
   "The same Q1_0 file gives PPL 23.1535-23.1794 (0.11%) depending on which code path the engine picks for the CPU; both paths are the same distance from the exact F16 reference. PPL alone cannot tell a correct path from a wrong one at this scale.",
   "The natural spread depends on the type: Q1_0 ~2-3e-4 KLD vs the exact reference; PQ2_0 ~1e-3. ik_llama.cpp vs prism on PQ2_0 is ~1.2e-3 because both are ~0.8-1.0e-3 from the reference in different directions.",
-  "KL was measured only on the ARM classes; on x86 only PPL and greedy text."
+  "In this matrix (2026-10-07/08), KL was measured only on the ARM classes; on x86 only PPL and greedy text. KL on x86-64 was measured later, in x86_reproduction (2026-10-13)."
  ],
  "x86_reproduction": {
   "cpu": {
