@@ -760,5 +760,166 @@
    "The commits pinned in scripts/ predate the kernel; the Q2_0 values elsewhere in this file are the generic C path.",
    "Prism has no x86 Q2_0 kernel at e3de715222b2667c54a267441159a5729f11155e (prism branch, read in the code on 2026-10-14, not measured): ggml_vec_dot_q2_0_q8_0 maps to the generic C code, and its AVX-512 repacked path is for PQ2_0 only."
   ]
+ },
+ "ik_q2_0_main": {
+  "measured": "2026-10-18",
+  "model_file": "Ternary-Bonsai-1.7B-Q2_0_g64.gguf",
+  "change": "ikawrakow/ik_llama.cpp#2659 (Add Q2_0: blocks of 64, type id 42 as in llama.cpp; AVX2 and NEON kernels), merged 2026-10-13 as 422c259a2",
+  "commits": {
+   "ik_llama.cpp": "c446f1e089f3dc2436b0600596c23abde00d988f",
+   "prism": "6bfcd79"
+  },
+  "reference": "F16 converted from the Q2_0 g64 file itself with Prism's llama-quantize (exact: only Q2_0 and F32 tensors)",
+  "protocol": "llama-perplexity -c 512, 8 windows, -t 2 for PPL/KL; llama-bench -p 512 -n 64 -t 2 -r 3 (Prism Q2_0 g64 on x86: -r 2); all in one session per CPU",
+  "aarch64": {
+   "cpu": "Neoverse-N1 (NEON + dotprod), OCI",
+   "compiler": "clang 18.1.3",
+   "loads": {
+    "Q2_0_g64": "loads",
+    "Q2_0_legacy": "refuses: tensor 'blk.27.ffn_up.weight' data is not within the file bounds"
+   },
+   "greedy": " Paris. The capital of France is Paris",
+   "ppl": {
+    "ik_llama.cpp": 18.3462,
+    "ik_llama.cpp -rtr": 18.3462,
+    "prism": 18.3733
+   },
+   "kl_vs_exact_f16": {
+    "ik_llama.cpp": {
+     "kld_mean": 0.00026,
+     "kld_mean_err": 8e-06,
+     "kld_max": 0.007307,
+     "top1_same_pct": 99.118,
+     "top1_same_err": 0.207
+    },
+    "prism": {
+     "kld_mean": 0.000234,
+     "kld_mean_err": 8e-06,
+     "kld_max": 0.006799,
+     "top1_same_pct": 98.725,
+     "top1_same_err": 0.248
+    }
+   },
+   "speed_tps_pp512_tg64": {
+    "ik_llama.cpp Q2_0_g64": [
+     [
+      34.08,
+      0.18
+     ],
+     [
+      13.3,
+      0.05
+     ]
+    ],
+    "ik_llama.cpp -rtr Q2_0_g64": [
+     [
+      34.16,
+      0.03
+     ],
+     [
+      13.2,
+      0.06
+     ]
+    ],
+    "prism Q2_0_g64": [
+     [
+      13.01,
+      0.06
+     ],
+     [
+      10.01,
+      0.03
+     ]
+    ],
+    "prism PQ2_0": [
+     [
+      16.05,
+      0.01
+     ],
+     [
+      12.47,
+      0.03
+     ]
+    ],
+    "ik_llama.cpp -rtr PQ2_0": [
+     [
+      67.48,
+      0.64
+     ],
+     [
+      7.8,
+      0.02
+     ]
+    ]
+   }
+  },
+  "x86_64": {
+   "cpu": "Intel Xeon @ 2.20GHz, 4 vCPUs, avx2 f16c fma (no AVX-512, no VNNI), Kaggle",
+   "compiler": "gcc 13.3.0",
+   "loads": {
+    "Q2_0_g64": "loads",
+    "Q2_0_legacy": "refuses: unable to load model"
+   },
+   "greedy": " Paris. The capital of France is Paris",
+   "ppl": {
+    "ik_llama.cpp": 18.386
+   },
+   "kl_vs_exact_f16": {
+    "ik_llama.cpp": {
+     "kld_mean": 0.000238,
+     "kld_mean_err": 8e-06,
+     "top1_same_pct": 99.118
+    }
+   },
+   "speed_tps_pp512_tg64": {
+    "ik_llama.cpp Q2_0_g64": [
+     [
+      30.96,
+      0.19
+     ],
+     [
+      10.64,
+      0.1
+     ]
+    ],
+    "prism Q2_0_g64": [
+     [
+      2.08,
+      0.0
+     ],
+     [
+      1.61,
+      0.0
+     ]
+    ],
+    "prism PQ2_0": [
+     [
+      28.76,
+      0.14
+     ],
+     [
+      13.79,
+      0.07
+     ]
+    ],
+    "ik_llama.cpp -rtr PQ2_0": [
+     [
+      71.73,
+      0.6
+     ],
+     [
+      21.92,
+      0.12
+     ]
+    ]
+   }
+  },
+  "notes": [
+   "Correct on both CPUs: same greedy text; PPL -0.15% vs Prism on aarch64 and +0.08% vs the published x86 value (18.3707, llama.cpp and Prism); KLD 1.1x Prism on aarch64 and 1.03-1.05x llama.cpp on x86 (x86_q2_0_avx2_kernel: 2.32e-4 generic, 2.27e-4 AVX2).",
+   "The ik_llama.cpp labels of run.sh check gave the same values at c446f1e as at the pinned 04b4ebc: all of them on aarch64; on x86, the two PPLs with -rtr (Q1_0 23.1762, PQ2_0 18.366).",
+   "scripts/ still pin ik_llama.cpp 04b4ebc, which predates Q2_0: there the file does not load (load table above).",
+   "Cosmetic: ik_llama.cpp logs 'unknown type q2_0' and 'ftype = Q1_0_G128' for this file. general.file_type 41 means Q2_0 in llama.cpp and Prism and Q1_0_G128 in ik_llama.cpp.",
+   "llama.cpp's AVX2 kernel (x86_q2_0_avx2_kernel) was measured in another session; the two are not compared."
+  ]
  }
 }

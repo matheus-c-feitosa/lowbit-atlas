@@ -17,7 +17,7 @@ At the commits measured (October 2026). Runtimes move fast; the linked issues ma
 | Model | Use | Avoid |
 |---|---|---|
 | **BitNet b1.58 2B4T** | **ik_llama.cpp**, after converting the file once: `llama-quantize --allow-requantize ggml-model-i2_s.gguf out.gguf iq2_bn_r4`. Correct on x86-64 and aarch64. In bitnet.cpp: isHuangXin/llama.cpp#2 + [#605](https://github.com/microsoft/BitNet/pull/605), run with `--override-kv bitnet-b1.58.hidden_activation=str:relu2`. Correct on both CPUs ([details](#bitnet-b158-2b-4t-which-fix-actually-works)) | **bitnet.cpp main as published** (`0b341e5`, still the latest): wrong output on CPU, ~6× the reference perplexity on x86-64 and `????` on aarch64 |
-| **Bonsai-1.7B** (Q1_0) and **Ternary-Bonsai-1.7B** (Q2_0 g64, PQ2_0) | Any of llama.cpp, Prism and ik_llama.cpp: the output is correct wherever the file loads ([which file loads where](#bonsai-17b-prism-correct-everywhere-tested)). Fastest prompt processing with Q1_0 and PQ2_0: **ik_llama.cpp with `-rtr`**. For PQ2_0 generation on aarch64, Prism is faster | The Ternary `Q2_0.gguf` marked "recommended" on its model card: it loads in none of the three. On x86-64, Q2_0 g64 in Prism: generic C code, ~13× slower than PQ2_0 (llama.cpp has an AVX2 kernel since `0a731cc`) |
+| **Bonsai-1.7B** (Q1_0) and **Ternary-Bonsai-1.7B** (Q2_0 g64, PQ2_0) | Any of llama.cpp, Prism and ik_llama.cpp: the output is correct wherever the file loads ([which file loads where](#bonsai-17b-prism-correct-everywhere-tested)). Fastest prompt processing with Q1_0 and PQ2_0: **ik_llama.cpp with `-rtr`**. For PQ2_0 generation on aarch64, Prism is faster | The Ternary `Q2_0.gguf` marked "recommended" on its model card: it loads in none of the three. On x86-64, Q2_0 g64 in Prism: generic C code, ~13× slower than PQ2_0 (llama.cpp has had an AVX2 kernel since `0a731cc`, ik_llama.cpp since `422c259`) |
 | **Ternary-Bonsai-2 27B** (PQ2_0, PTQ1_0) | Prism or ik_llama.cpp (llama.cpp does not have these types yet). **ik_llama.cpp with `-rtr`** is ~2× faster than Prism on PQ2_0 (x86-64) | ik_llama.cpp without `-rtr`: prompt processing ~3× slower than Prism. On x86-64, PTQ1_0 in Prism: ~4× slower prompt processing and ~2.4× slower generation than PQ2_0, although the file is smaller (no fast path yet, [PrismML-Eng/llama.cpp#324](https://github.com/PrismML-Eng/llama.cpp/issues/324)) |
 
 Measured on x86-64 with AVX2 and on aarch64 Neoverse-N1 only. On CPUs with AVX-512, loading PQ2_0 in Prism is reported to crash ([PrismML-Eng/llama.cpp#180](https://github.com/PrismML-Eng/llama.cpp/issues/180), not tested here). Other CPUs: [help wanted](#run-it-on-your-cpu-help-wanted).
@@ -29,7 +29,7 @@ Measured on x86-64 with AVX2 and on aarch64 Neoverse-N1 only. On CPUs with AVX-5
    - On aarch64 the output is garbage (`????`) since commit `112f853`, Nov 2025 ([#470](https://github.com/microsoft/BitNet/issues/470)).
    - Fixes have been proposed but **none is merged**. We tested them against a reference: on current main, **only the activation fix from #588 gives correct output** (plus isHuangXin/llama.cpp#2 on aarch64). It can be applied as a one-line change; through [#605](https://github.com/microsoft/BitNet/pull/605) plus a runtime key, safely for the other BitNet models; or with [#642](https://github.com/microsoft/BitNet/pull/642) in its third version (Oct 15), which bundles the one-line change with the same aarch64 kernel as llama.cpp#2 and is correct on our aarch64 and x86-64 machines, with static and shared-library builds. Two other proposed fixes do not reach the code that runs. See [BitNet](#bitnet-b158-2b-4t-which-fix-actually-works).
 2. **The Bonsai family (Prism) runs correctly** in llama.cpp and the Prism fork on every CPU class tested, and in ik_llama.cpp where tested. The differences are in **speed** and in **which file loads where**: the file marked "recommended" on one model card does not load in any of the three runtimes.
-3. **Speed depends on the format × CPU × runtime path, not on file size.** The smallest 27B file is ~4× slower to process prompts in Prism on AVX2 x86. ik_llama.cpp with `-rtr` is the fastest in most cases measured (not for PQ2_0 generation on aarch64), and `-rtr` is off by default: without it, ik_llama.cpp is often the slowest. On x86-64 at the measured commits, Q2_0 has no SIMD kernel at all, so the Ternary-Bonsai-1.7B Q2_0 g64 file processes prompts ~13× slower than its PQ2_0 version. llama.cpp merged an AVX2 kernel for it on 2026-10-13: measured before and after on the same VM, it is ~6× faster with unchanged accuracy.
+3. **Speed depends on the format × CPU × runtime path, not on file size.** The smallest 27B file is ~4× slower to process prompts in Prism on AVX2 x86. ik_llama.cpp with `-rtr` is the fastest in most cases measured (not for PQ2_0 generation on aarch64), and `-rtr` is off by default: without it, ik_llama.cpp is often the slowest. On x86-64 at the measured commits, Q2_0 has no SIMD kernel at all, so the Ternary-Bonsai-1.7B Q2_0 g64 file processes prompts ~13× slower than its PQ2_0 version. llama.cpp merged an AVX2 kernel for it on 2026-10-13: measured before and after on the same VM, it is ~6× faster with unchanged accuracy. ik_llama.cpp added Q2_0 on the same day: also correct, and ~15× faster than Prism for prompt processing on x86-64.
 
 ## BitNet-b1.58-2B-4T: which fix actually works
 
@@ -102,7 +102,7 @@ Three formats (PQ2_0 loads only in Prism) × five CPU classes × llama.cpp and t
 | File | llama.cpp | Prism | ik_llama.cpp |
 |---|---|---|---|
 | Bonsai-1.7B Q1_0 | ✔ | ✔ | ✔ |
-| Ternary-Bonsai-1.7B Q2_0 g64 | ✔ | ✔ | ✘ (no type 42) |
+| Ternary-Bonsai-1.7B Q2_0 g64 | ✔ | ✔ | ✘ at `04b4ebc` (no type 42); ✔ since `422c259` (update below) |
 | Ternary-Bonsai-1.7B PQ2_0 | ✘ (type 142 unknown) | ✔ | ✔ |
 | Ternary-Bonsai-1.7B **Q2_0 ("recommended" on the card)** | ✘ | ✘ (clear message: legacy layout) | ✘ |
 
@@ -138,6 +138,24 @@ On x86-64 at these commits, llama.cpp has no repacked path for Q1_0, while Prism
 - The F16 reference is converted from the Q2_0 g64 file itself. The conversion is exact, because the file holds only Q2_0 and F32 tensors.
 - The commits pinned in `scripts/` predate the kernel, so the Q2_0 row in the table above is the generic path.
 - **Prism does not have this kernel yet** (read in the code of its `prism` branch at `e3de715`, 2026-10-14; not measured). Q2_0 still runs generic C code there on x86, with or without AVX-512 (its AVX-512 repacked path is for PQ2_0 only). Prism and llama.cpp ran Q2_0 at the same speed before the kernel (2.1 / 1.6), so on x86 a Q2_0 g64 file should run ~6× faster in llama.cpp from `0a731cc` than in Prism. The same model in PQ2_0 is still faster (speed table above): 27.8 / 12.9 in Prism, 71.4 / 17.3 in ik_llama.cpp with `-rtr`.
+
+**Update, 2026-10-18:** ik_llama.cpp added Q2_0 ([ikawrakow/ik_llama.cpp#2659](https://github.com/ikawrakow/ik_llama.cpp/pull/2659), `422c259`, 2026-10-13): blocks of 64 with the same type id as llama.cpp, and AVX2 and NEON kernels. Measured at `c446f1e` (main on 2026-10-17), with Prism `6bfcd79` in the same session, 2 threads, on aarch64 Neoverse-N1 (clang 18) and on the same kind of x86-64 VM (Intel Xeon @ 2.2 GHz, AVX2 + FMA, no AVX-512, gcc 13.3):
+
+| Q2_0 g64 in ik_llama.cpp `c446f1e` | aarch64 | x86-64 |
+|---|---|---|
+| Speed, tokens/s (prompt / generation) | **34.1 / 13.3** (Prism: 13.0 / 10.0) | **31.0 / 10.6** (Prism: 2.1 / 1.6) |
+| KL vs exact F16, same top-1 | 2.60e-4, 99.1% (Prism: 2.34e-4, 98.7%) | 2.38e-4, 99.1% (llama.cpp: 2.27–2.32e-4) |
+| PPL, 8 windows | 18.3462 (Prism: 18.3733) | 18.386 (llama.cpp and Prism: 18.3707) |
+| Greedy text | "Paris. The capital of France is Paris" | same |
+
+- **Correct on both CPUs:** the text is the same, the PPL is within 0.15% of the other runtimes, and the KL is 1.0–1.1× theirs, within the type's natural spread.
+- **On x86-64 it is ~15× faster than Prism for prompt processing and ~6.6× for generation**, because Prism still runs generic C code for Q2_0. On aarch64: 2.6× and 1.3×.
+- **PQ2_0 is still the fastest file on x86-64.** In the same session it ran at 71.7 / 21.9 in ik_llama.cpp with `-rtr` (2.3× / 2.1× the Q2_0 g64 file) and at 28.8 / 13.8 in Prism.
+- llama.cpp's AVX2 kernel (update above) was measured in another session, so it is not compared here.
+- `-rtr` changes nothing for Q2_0 on aarch64: same PPL and speed, as there is no repacked type. Not measured on x86-64.
+- The legacy Q2_0 file still does not load.
+- ik_llama.cpp logs `unknown type q2_0` and labels the file `Q1_0_G128`. That is cosmetic: `general.file_type` 41 means Q2_0 in llama.cpp and Prism, and Q1_0_G128 in ik_llama.cpp.
+- The ik_llama.cpp commit pinned in `scripts/` (`04b4ebc`) predates Q2_0. At `c446f1e`, the ik_llama.cpp numbers of `run.sh check` are unchanged: all of them on aarch64, and the two measured on x86-64. Details: `ik_q2_0_main` in [`results/bonsai-1.7b.json`](results/bonsai-1.7b.json).
 
 ## Ternary-Bonsai-2 27B (Prism): correct, speed depends on the file
 
@@ -210,6 +228,7 @@ The full history is in the commit log.
   - Fixed in `scripts/`: `compare.py` reported a KL measurement that gave no number (a crash, or `-nan`) as NEW instead of DIFFERS, and stopped with an error on `nan`. Each record now carries the runtime's exit code, so a crash shows up as one. Also: a mean KLD below zero is now read; if a results file holds the same label twice, the last run counts; rerunning the notebook cell starts a new results file. The published numbers do not change.
   - Added: `tests/`, checks of the scripts themselves (a few seconds, no downloads).
   - Added: the short check on aarch64 with gcc 13.3 instead of clang 18: 8 SAME and 2 CLOSE ([Reproduce](#reproduce)).
+  - Added: Q2_0 in ik_llama.cpp (ik#2659), measured at `c446f1e` on aarch64 and x86-64: correct, and ~15× faster than Prism for prompt processing on x86-64 ([Bonsai section](#bonsai-17b-prism-correct-everywhere-tested)).
 - **2026-10-16**
   - Added: the BitRun v0.2 engine (IshekKhal, the author of #642), rebased on current llama.cpp: correct on aarch64 (18.84 on the same token IDs; identical in a second session).
 - **2026-10-15**
