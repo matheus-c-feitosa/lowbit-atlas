@@ -6,8 +6,9 @@
     parse_log.py kl    <llama-perplexity --kl-divergence log>
     parse_log.py bench <llama-bench -o md output>
 
-Prints one JSON object. Fields that are missing in the log are null.
-Both runtimes print the same KL block; the final PPL line differs:
+Prints one JSON object. Fields that are missing in the log (or a missing
+log) are null. Both runtimes print the same KL block; the final PPL line
+differs, and neither prints it when the perplexity is nan:
   llama.cpp: "Final estimate: PPL = 23.1558 +/- 1.80119"
   ik:        "Final estimate: PPL over 8 chunks for n_ctx=512 = 18.81 +/- 1.30"
 """
@@ -15,14 +16,17 @@ import json
 import re
 import sys
 
-NUM = r"([0-9.]+|nan|inf)"
+# glibc prints NaN as "nan" or "-nan"; a mean KLD at the noise floor can be < 0
+NUM = r"(-?[0-9.]+|-?nan|-?inf)"
 
 
 def num(s):
     # nan/inf are kept as strings so the output stays valid JSON
     if s is None:
         return None
-    return s if s in ("nan", "inf") else float(s)
+    if s.endswith("nan"):
+        return "nan"
+    return s if s.endswith("inf") else float(s)
 
 
 def ppl(text):
@@ -66,8 +70,11 @@ def bench(text):
 def main():
     if len(sys.argv) != 3 or sys.argv[1] not in ("ppl", "kl", "bench"):
         sys.exit(__doc__)
-    with open(sys.argv[2], encoding="utf-8", errors="replace") as f:
-        text = f.read()
+    try:
+        with open(sys.argv[2], encoding="utf-8", errors="replace") as f:
+            text = f.read()
+    except FileNotFoundError:
+        text = ""  # the tool never ran: every field is null
     out = {"ppl": ppl, "kl": kl, "bench": bench}[sys.argv[1]](text)
     print(json.dumps(out, allow_nan=False))
 

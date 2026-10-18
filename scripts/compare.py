@@ -11,9 +11,13 @@ architecture (values from results/*.json) and prints:
   DIFFERS  outside that range: worth a look
   NEW      nothing published for this label on this architecture
   PARTIAL  fewer windows than published and no per-window value to compare
-Speed is only reported (machines differ), never judged.
+A measurement that gave no number (crash, nan) where one is published is
+DIFFERS, with the runtime's exit code when it is not 0. Speed is only
+reported (machines differ), never judged. If the file holds several records
+for the same label (a rerun appends), the last one counts.
 """
 import json
+import math
 import sys
 
 # label -> value, per architecture. aarch64: Neoverse-N1 (NEON+dotprod);
@@ -113,7 +117,20 @@ def arch(rec):
     return rec["cpu"].split("|")[0].strip()
 
 
+def number(x):
+    """A finite float, or None: missing, or nan/inf (kept as strings)."""
+    if isinstance(x, (int, float)) and math.isfinite(x):
+        return float(x)
+    return None
+
+
+def exit_code(r):
+    rc = r.get("rc")
+    return f" (exit code {rc})" if rc not in (None, 0) else ""
+
+
 def judge_ppl(got, want):
+    got = number(got)
     if got is None:
         return "DIFFERS"
     if round(got, 4) == round(want, 4):
@@ -124,9 +141,15 @@ def judge_ppl(got, want):
 def main():
     if len(sys.argv) != 2:
         sys.exit(__doc__)
-    rows, counts = [], {}
+    latest, n_lines = {}, 0
     for line in open(sys.argv[1]):
         r = json.loads(line)
+        key = (r["label"], r["kind"], r["cpu"])
+        latest.pop(key, None)  # keep the order of the last run
+        latest[key] = r
+        n_lines += 1
+    rows, counts = [], {}
+    for r in latest.values():
         a, label, kind = arch(r), r["label"], r["kind"]
         status, got, want = "NEW", "", ""
         if kind == "ppl":
@@ -147,9 +170,12 @@ def main():
         elif kind == "kl":
             got = r.get("kld_mean")
             want = KLD.get(a, {}).get(label)
-            if want is not None and got is not None:
-                status = "SAME" if abs(got - want) < 5e-6 else (
-                    "CLOSE" if 0.5 <= got / want <= 2 else "DIFFERS")
+            kld = number(got)
+            if want is not None and kld is None:
+                status = "DIFFERS"
+            elif want is not None:
+                status = "SAME" if abs(kld - want) < 5e-6 else (
+                    "CLOSE" if 0.5 <= kld / want <= 2 else "DIFFERS")
         elif kind == "greedy":
             got = r.get("text", "").replace(PROMPT, "", 1).replace("\n", " ")
             key = label if label in TEXT else label.split("-", 1)[-1]
@@ -168,12 +194,17 @@ def main():
         elif kind == "bench":
             got = " ".join(f"{k} {v['tps']}" for k, v in r["bench"].items())
             status = "INFO"
+        if kind != "load":  # a file that does not load exits non-zero
+            got = f"{got}{exit_code(r)}"
         counts[status] = counts.get(status, 0) + 1
         rows.append((status, kind, label, a, got, want))
     w = max(len(x[2]) for x in rows) if rows else 10
     for status, kind, label, a, got, want in rows:
         print(f"{status:8} {kind:6} {label:{w}} {a:8} got={got} "
               f"published={want if want != '' else '-'}")
+    if n_lines > len(latest):
+        print(f"\nnote: {n_lines - len(latest)} older records replaced by a "
+              "later run of the same label")
     print("\nsummary:", ", ".join(f"{k} {v}" for k, v in sorted(counts.items())))
     sys.exit(1 if counts.get("DIFFERS") else 0)
 

@@ -2,7 +2,7 @@
 
 By [Matheus Feitosa](https://github.com/matheus-c-feitosa) · October 2026
 
-> **First edition, October 2026.** Measured, and reproduced from scratch with the scripts in this repository, on aarch64 (Neoverse-N1) and x86-64 (Intel Xeon, AVX2). Last updated 2026-10-16 ([changelog](#changelog)).
+> **First edition, October 2026.** Measured, and reproduced from scratch with the scripts in this repository, on aarch64 (Neoverse-N1) and x86-64 (Intel Xeon, AVX2). Last updated 2026-10-18 ([changelog](#changelog)).
 
 An independent check of low-bit (1-bit, ternary, 2-bit) LLM files on CPU. For each file, runtime and CPU class, it answers two questions: **does the output match a reference, and how fast is it?** Every number comes with the runtime commit, file sha256, CPU and flags (`results/`); `scripts/` rebuilds and reruns the main measurements.
 
@@ -165,13 +165,14 @@ WORK=$PWD/work scripts/run.sh quick     # BitNet + Bonsai 1.7B; "full" adds the 
                                         # "27b" runs only the 27B part (needs prism and ik)
                                         # "check": a ~30 min subset (needs prism and ik)
 scripts/compare.py work/results.jsonl   # SAME / CLOSE / DIFFERS vs the numbers published here
+python3 -m unittest discover tests     # checks of the scripts themselves (seconds, no downloads)
 ```
 
 Every input is pinned: runtime commits, model files (revision and sha256) and WikiText-2. `run.sh` records each measurement with the CPU, the runtime and submodule commits, and the flags.
 
 **Reproduced from scratch on aarch64** (Neoverse-N1, clang 18, 2026-10-11): all builds, then `run.sh quick` in about 2 h. Result: **43 of 43** comparable measurements came out SAME (greedy text, perplexity, KL, which file loads where). Speed is not judged: prompt processing came within 2.5% of the published numbers, generation within 10%.
 
-**The short check, from scratch on aarch64** (`build.sh prism ik` then `run.sh check`, Neoverse-N1, clang 18, 2026-10-14): 16 min of builds and 16 min of measurements on 2 cores. **10 of 10** comparable measurements came out SAME.
+**The short check, from scratch on aarch64** (`build.sh prism ik` then `run.sh check`, Neoverse-N1, clang 18, 2026-10-14): 16 min of builds and 16 min of measurements on 2 cores. **10 of 10** comparable measurements came out SAME. With gcc 13.3 instead (Ubuntu's default), the same check gives 8 SAME and 2 CLOSE (Prism PQ2_0 −0.07%, ik_llama.cpp BitNet +0.16%), within the spread between valid code paths.
 
 **The short check through the notebook, on Kaggle** (Intel Xeon @ 2.2 GHz, 4 vCPUs, gcc 13.3, 2026-10-14): 15 min of builds and 14 min of measurements. **10 of 10** SAME.
 
@@ -205,6 +206,10 @@ Found an error, or have a CPU, runtime or model file that is not covered here? P
 
 The full history is in the commit log.
 
+- **2026-10-18**
+  - Fixed in `scripts/`: `compare.py` reported a KL measurement that gave no number (a crash, or `-nan`) as NEW instead of DIFFERS, and stopped with an error on `nan`. Each record now carries the runtime's exit code, so a crash shows up as one. Also: a mean KLD below zero is now read; if a results file holds the same label twice, the last run counts; rerunning the notebook cell starts a new results file. The published numbers do not change.
+  - Added: `tests/`, checks of the scripts themselves (a few seconds, no downloads).
+  - Added: the short check on aarch64 with gcc 13.3 instead of clang 18: 8 SAME and 2 CLOSE ([Reproduce](#reproduce)).
 - **2026-10-16**
   - Added: the BitRun v0.2 engine (IshekKhal, the author of #642), rebased on current llama.cpp: correct on aarch64 (18.84 on the same token IDs; identical in a second session).
 - **2026-10-15**
