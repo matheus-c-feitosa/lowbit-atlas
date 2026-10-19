@@ -1,6 +1,6 @@
 # Low-bit LLMs on CPU: what runs correctly and fast where (Oct 2026)
 
-By [Matheus Feitosa](https://github.com/matheus-c-feitosa) · October 2026
+By [Matheus C. Feitosa](https://github.com/matheus-c-feitosa) · October 2026
 
 > **First edition, October 2026.** Measured, and reproduced from scratch with the scripts in this repository, on aarch64 (Neoverse-N1) and x86-64 (Intel Xeon, AVX2). Last updated 2026-10-18 ([changelog](#changelog)).
 
